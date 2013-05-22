@@ -1,0 +1,60 @@
+<html>
+<head>
+  <title>Log in to Topical</title>
+	
+ <link rel="stylesheet" type="text/css" id="stylesheet"
+       href="/styles/default.css" />	
+</head>
+<body>
+{{with .notice}}{{htm .}}{{end}}	
+<h1>Log in to Topical</h1>
+<form action="loginAction" method="post">
+<input type="hidden" name="next" value="{{.next}}" />
+<table>	    
+	<tr>
+		<td>
+		User name:	
+		</td>
+		<td>
+		<input name="username" type="text" size="20" />
+		</td>		
+	</tr>
+	<tr>
+		<td>
+		Password:	
+		</td>
+		<td>
+		<input name="pw" type="password" size="20" />
+		</td>		
+	</tr>	
+	<tr>
+		<td colspan="2">
+	         &nbsp;
+		</td>		
+	</tr>	
+	<tr>
+		<td>
+	    &nbsp;
+		</td>
+		<td>
+	    <input type="submit" value="Log in" />		
+		</td>		
+	</tr>	
+</table>
+<p>
+	If you do not have a user account, you will only be able to create one if you have
+	been given the special "user creation password".
+</p>
+<p>
+	If you do know the "user creation password", here is how you create your new Topical user account:
+	<ul>
+	<li>Enter the user name you want to create, above.</li>
+	<li>Enter the special "user creation password", above.</li>
+	<li>Press the Log in button. </li>
+	<li>You will be asked to enter user account info, such as your real name, 
+	and a password that you want to use for subsequent logins.</li>
+    </ul>
+</p>
+</body>
+</form>
+</html>

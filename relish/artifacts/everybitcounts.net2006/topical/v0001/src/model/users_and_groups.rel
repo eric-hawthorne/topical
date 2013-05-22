@@ -1,0 +1,161 @@
+origin   everybitcounts.net2006
+artifact topical
+package  model
+
+"""
+ users_and_groups.rel
+
+ Users, groups, and permissions.
+"""
+
+
+PERMISSION_TYPES = ["view" "edit" "create" "delete" "rename"]
+
+
+Principal
+"""
+ A security principal.
+"""
+   name String  // username or group name
+
+
+User <: Principal
+"""
+ A user of the web application.
+"""
+   password String  // Hashed password
+   firstName String
+   lastName String
+
+
+Group <: Principal
+"""
+ A group of users.
+"""
+
+
+User 0 N -- 0 N Group
+
+
+ensureGuestUser > User
+"""
+ Fetch, or create and persist if necessary, and return, a user whose username is guest.
+"""
+   if exists "guest"
+      => summon "guest"
+   else
+      user = User
+      user.name = "guest"
+      user.password = base64Hash ""
+      user.firstName = "Anonymous"
+      user.lastName = "Guest"
+      dub user "guest"
+      => user
+      
+
+Permission
+"""
+ A particular permission to access or modify a particular resource.
+"""
+   type String
+
+
+Permission 0 N -- 0 N Principal
+
+
+Permission 0 N -- 1 Resource
+
+
+Resource 
+"""
+ Something to which access is controlled via Permissions.
+"""
+
+
+hasPermission user User permissionType String resource Resource > Bool
+"""
+ Does this user have the specified permission to the specified resource?
+"""
+   if hasPermission1 user permissionType resource
+      => true
+   else
+      for group in user.groups
+         if hasPermission1 group permissionType resource
+            => true
+   => false
+
+
+hasPermission group Group permissionType String resource Resource > Bool
+"""
+ Does this group have the specified permission to the specified resource?
+"""
+   => hasPermission1 group permissionType resource
+
+
+hasPermission1 principal Principal permissionType String resource Resource > Bool
+"""
+ Helper function.
+ Does this principal have the specified permission to the specified resource?
+ Assumes each resource has at most one Permission object per permission type,
+ and each permission object permits N principals.
+"""
+   perms = resource.permissions
+
+   for perm in perms
+      if eq perm.type permissionType
+         for permittedPrincipal in perm.principals
+            if eq principal permittedPrincipal  
+               => true
+         break
+   => false
+
+
+grantPermission principal Principal permissionType String resource Resource
+"""
+ Give the principal explicitly (directly) the permission to the resource.
+ If they already have such permission, nothing is done.
+ The principal may also simulataneously have the permission indirectly via being in a group,
+"""
+   perms = resource.permissions
+   for perm in perms
+      if eq perm.type permissionType
+         perm.principals += principal
+         =>
+   newPermission = Permission
+   newPermission.type = permissionType
+   newPermission.resource = resource   
+   // resource.permissions += perm
+   newPermission.principals += principal
+
+
+
+revokePermission principal Principal permissionType String resource Resource
+"""
+ Remove the direct grant of permission to the resource from the principal.
+ The principal may still have the permission by virtue of being a member of 
+ a permitted Group.
+"""
+   perms = resource.permissions
+   for perm in perms
+      if eq perm.type permissionType
+         perm.principals -= principal
+         =>
+
+
+
+GlobalPasswords
+"""
+ A master password used to administrate the site, and a user signup password.
+"""
+   masterPwHash ?String
+   signupPwHash ?String
+
+
+ensureGlobalPasswords
+"""
+ Create in the database the object to store global passwords.
+"""
+   if not exists "GlobalPasswords"
+      g = GlobalPasswords
+      dub g "GlobalPasswords" 
+

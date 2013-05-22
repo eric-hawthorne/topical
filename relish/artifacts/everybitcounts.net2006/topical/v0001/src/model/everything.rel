@@ -1,0 +1,241 @@
+origin   everybitcounts.net2006
+artifact topical
+package  model
+
+"""
+ everything.rel
+
+ The data model of the note taking domain.
+ May separate this out into separate files.
+"""
+
+
+import
+   datetime
+   strings
+
+
+Ontology <: Resource
+"""
+ A set of linked topics.
+"""
+   name String
+   urlPathComponent String
+   description String
+   root Topic
+
+
+Ontology [<name] 0 N -- 1 User
+
+
+Topic
+"""
+ A single note page, representing a concept or topic.
+"""
+   title String
+   urlPathComponent String
+   content String
+   lineColor ?String
+   fillColor ?String
+   titleColor ?String
+   pos ?Position  // Position will be assigned the first time topic is displayed in map view.
+   level Int  // 0 = root, 1 = child of root, 2 or more = more indirect descendent of root than that 
+   activeParent ?Topic  // Which parent should I show siblings of ?
+   ontology Ontology
+   
+
+urlPath topic Topic > String
+"""
+ Return the full url path of the topic.
+"""
+   => cat topic.ontology.urlPathComponent "/" topic.urlPathComponent
+
+
+Link
+"""
+ A link between two topics.
+"""
+   type String  // "ParentChild" | "Related" 
+   subType ?String  // "SupertypeSubtype" | "WholePart" | "BeforeAfter"
+   label ?String
+   color ?String
+   labelColor ?String
+   pos ?Position  // Position of the label
+
+
+ParentChild <: Link
+"""
+ A parent-child link between topics.
+"""
+
+
+initParentChild pc ParentChild > ParentChild
+"""
+ Constructor
+"""
+   pc.type = "ParentChild"
+   => pc
+
+
+Topic 1 child -- parentLinks 0 N ParentChild
+
+
+Topic 1 parent -- childLinks 0 N ParentChild
+
+
+Related <: Link
+"""
+ An arbitrary relationship between topics.
+"""
+
+
+initRelated r Related > Related
+"""
+ Constructor
+"""
+   r.type = "Related"
+   => r
+
+
+Topic 1 from -- toLinks 0 N Related
+
+
+Topic 1 to -- fromLinks 0 N Related
+
+
+isParentChild p Topic c Topic > Bool 
+"""
+ Whether p is a direct parent of c.
+"""
+   for pc in p.childLinks
+      if eq pc.child c 
+         => true
+   => false
+
+
+isRelated t1 Topic t2 Topic > Bool 
+"""
+ Whether t1 is related either to or from t2.
+"""
+   => or goesTo t1 t2
+         goesTo t2 t1
+
+
+goesTo t1 Topic t2 Topic > Bool 
+"""
+ Whether t1 is related forwards to t2.
+"""
+   for r in t1.toLinks
+      if eq r.to t2 
+         => true
+
+   => false
+
+
+
+
+
+assertParentChild p Topic c Topic > err String
+"""
+ Check if the topics are already related directly in a
+ parent child sense.
+ If not, relate them as parent to child.
+
+ TODO More checks are needed, such as disallowing
+ direct or indirect p is already a child or grandchild etc of c.
+
+ TODO Not sure if a child should be allowed to be both directly
+ and indirectly a child of the same p, or indirectly a child of
+ it through two different paths. I think this is ok.
+
+ TODO Should return an error if the link does not already exist
+ and cannot be made because a conflicting relationship already
+ exists.
+"""
+   if isParentChild p c 
+      => 
+
+   if isParentChild c p
+      err = fill "Topic '%s' is a child of '%s'. Cannot be parent too." p.title c.title 
+      =>
+
+   pc = ParentChild
+   c.parentLinks += pc
+   p.childLinks += pc
+
+
+assertRelated from Topic to Topic > err String
+"""
+ Assert an ad-hoc relationship between one topic and another, if 
+ the same label of relationshup does not already exist.
+ Currently disallows a direct relationship in both directions.
+
+ TODO the checks are not subtle enough yet.
+"""
+   if isRelated from to
+      =>
+   
+   r = Related
+   from.toLinks += r
+   to.fromLinks += r
+
+
+grandParents topic Topic 
+> 
+   topics [] Topic
+"""
+ Returns the set of grandparents of the topic.
+ Note: Should make this an ordered set.
+"""
+   topics = []Topic
+
+   for parentLink in topic.parentLinks
+      parent = parentLink.parent
+      for grandParentLink in parent.parentLinks
+         grandParent = grandParentLink.parent
+         if not contains topics grandParent
+            topics += grandParent
+
+
+grandChildren topic Topic 
+> 
+   topics [] Topic
+"""
+ Returns the set of grandchildren of the topic.
+ Note: Should make this an ordered set.
+"""
+   topics = []Topic
+
+   for childLink in topic.childLinks
+      child = childLink.child
+      for grandChildLink in child.childLinks
+         grandChild = grandChildLink.child
+         if not contains topics grandChild
+            topics += grandChild
+
+
+ensureActiveParent topic Topic
+"""
+ If the topic has no active parent but has at least one parent,
+ the first-encountered parent with at least two children is made the active
+ parent.
+"""
+   if topic.activeParent
+      =>
+   
+   for parentLink in topic.parentLinks
+      parent = parentLink.parent
+      if gt (len parent.childLinks) 1
+         topic.activeParent = parent
+         break
+
+
+
+Position
+"""
+ Position in concept graph map. 
+ Coordinates start at 0,0 top left.
+"""
+   x Int
+   y Int
+

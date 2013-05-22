@@ -1,0 +1,9 @@
+origin: everybitcounts.net2006
+artifact: topical
+current version: 1
+release date: 2013/05/04
+standard tags: example tag, second example tag
+more tags:
+
+Concept-organizing note taking application.
+Makes use of CKEditor inline html5 editor.

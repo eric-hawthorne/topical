@@ -1,0 +1,29 @@
+<html>
+<head>
+  <title>Topical Ontologies</title>
+	
+ <link rel="stylesheet" type="text/css" id="stylesheet"
+       href="/styles/default.css" />	
+</head>
+<body>
+<h1>Topical Ontologies</h1>
+<table>	    
+{{range .}} 
+	<tr>
+		<td>
+		{{.name}}	
+		</td>
+		<td>
+		{{.description}}	
+		</td>		
+	</tr>
+{{else}}
+   <p>There are no ontologies yet.</p>
+   <p>As an example, you can create an ontology called "My Biology Knowledge Base"
+	by typing the following url in the browser address bar:<br/>
+	http://topicalhost.org/username/my-biology-knowledge-base
+	</p>
+{{end}}
+</table>
+</body>
+</html>

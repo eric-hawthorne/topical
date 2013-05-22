@@ -1,0 +1,65 @@
+<html>
+<head>
+  <title>Create Topical User Account</title>
+	
+ <link rel="stylesheet" type="text/css" id="stylesheet"
+       href="/styles/default.css" />	
+</head>
+<body>
+<h1>Create your Topical User Account</h1>
+<form action="createUserAction" method="post">
+<input type="hidden" name="tok" value="{{.token}}" />
+<input type="hidden" name="username" value="{{.username}}" />
+<table>	    
+	<tr>
+		<td>
+		User name:	
+		</td>
+		<td>
+		{{.username}}
+		</td>		
+	</tr>
+	<tr>
+		<td>
+		Password:	
+		</td>
+		<td>
+		<input name="pw" type="password" size="20" />
+		</td>		
+	</tr>
+	<tr>
+		<td>
+		Re-type Password:	
+		</td>
+		<td>
+		<input name="pw2" type="password" size="20" />
+		</td>		
+	</tr>	
+	<tr>
+		<td>
+		First Name:	
+		</td>
+		<td>
+		<input name="firstname" type="text" size="30" />
+		</td>		
+	</tr>
+	<tr>
+		<td>
+		Last Name:	
+		</td>
+		<td>
+		<input name="lastname" type="text" size="30" />
+		</td>		
+	</tr>			
+	<tr>
+		<td>
+	    &nbsp;
+		</td>
+		<td>
+	    <input type="submit" value="Create User" />		
+		</td>		
+	</tr>	
+</table>
+</body>
+</form>
+</html>

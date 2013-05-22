@@ -1,0 +1,114 @@
+origin   everybitcounts.net2006
+artifact topical
+package  web
+
+"""
+ util.rel
+
+ Utility functions
+"""
+
+import
+   strings
+
+
+errPage message String buttonLabel String backUrl String 
+> 
+   String 
+   Map
+"""
+ Returns instructions for displaying an error message on an error page.
+"""
+   => "err.html"
+      {
+         "errorMessage"   => message
+         "backButtonName" => buttonLabel      
+         "backUrlPath"    => backUrl
+      }String > String
+
+
+
+
+urlSanitize s String > String
+"""
+ Returns a version of the string made safe to be a nice looking URL path component.
+ TODO: This is currently lame.
+"""
+   => replace s " " "-"
+
+
+unsanitize s String > String
+"""
+ Inverse of urlSanitize.
+"""
+   => replace s "-" " "
+
+
+ontologyNameFormat s String > String
+"""
+ Unsanitize and then capitalize the string which is assumed to be 
+ the urlPathComponent of a topical ontology.
+"""
+   slashPos = lastIndex s "/"
+   s = slice s (plus 1 slashPos)
+   => title unsanitize s
+
+
+noBreak s String > String
+"""
+ Replace spaces in s by html non-breaking-space escape sequences.
+"""
+   => replace s " " "&nbsp;"
+
+
+length c Collection > Int
+"""
+ Renaming of the len function since that doesn't work in templates.
+"""
+   => len c
+
+
+stripTags s String > String
+"""
+ Strips html tags.
+"""
+   stripped = ""
+
+   while s
+      // print cat ">" s "<"
+      startPos = index s "<"
+      if gte startPos 0 
+         s1 = slice s 0 startPos
+         stripped = cat stripped s1
+         s = slice s startPos
+         endPos = index s ">"
+         if gte endPos 0
+            s = slice s (plus endPos 1)
+         else
+            break
+      else
+         break
+
+   => stripped
+      
+
+stripTagsAndTitle s String topicTitle String > String
+"""
+ Strips html tags and the title of the topic from topic content.
+"""
+   s = stripTags s
+   if eq 0 (index s topicTitle)
+      => slice s (len topicTitle)
+   => s
+
+
+stripNbsps s String > String
+"""
+ Replace &nbsp; by space, but not if the &nbsp; is already followed by a space.
+"""
+   s = replace s "&nbsp; " "&nbsp ;"
+   s = replace s "&nbsp;" " "
+   s = replace s "&nbsp ;" "&nbsp; "
+   => s
+
+

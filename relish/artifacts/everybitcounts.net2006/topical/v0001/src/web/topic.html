@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+  {{$topic := .topic}}	
+  <title>{{$topic.title}}</title>
+
+ <link rel="stylesheet" type="text/css" id="stylesheet"
+       href="/styles/default.css" />
+    <meta charset="utf-8" />
+<!-- http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js -->
+	<script src='http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js' type='text/javascript'></script>
+<!-- http://ckeditor.com/apps/ckeditor/4.1.1/ckeditor.js -->	
+	<script type='text/javascript' src='http://ckeditor.com/apps/ckeditor/4.1.1/ckeditor.js'></script>
+	
+	<script type='text/javascript'>
+	// <![CDATA[
+
+	
+	var editor = null;
+	
+	var editing = false;
+	
+	var topicTitle = "{{$topic.title}}";
+	
+	/*
+	Returns whether the title was changed.
+	In fact, if the title is changed, replaces the page with a new page,
+	so might not return at all.
+	*/ 
+	function Save (checkForReload) {
+		var title = "";
+		
+		if (editing) {
+		    var data = CKEDITOR.instances.content.getData();
+		    // alert(data)
+		 
+		   var newTitle = ""
+		   if (checkForReload) {
+		      newTitle = CheckForChangedTitle(data)
+		   }
+		   if (newTitle == "") {  // post topic content asynchronously
+			   $.post('/saveTopicAction', {
+				    topic : '{{urlPath $topic}}',
+			        content : data
+			        })
+			   return false
+		   } else { // post content synchronously, reloading page by browsing to new title url
+			   var form = document.getElementById("retitleForm");
+			   form.newTitle.value = newTitle;
+			   form.content.value = data;
+			   form.submit();
+			   return true
+		   }
+	   }
+	   return false
+	}
+	
+	/*
+	Return empty string if title has not changed.
+	Return new title if it has.
+	*/
+    function CheckForChangedTitle(data) {
+	   var titleStartPos = data.indexOf(">") + 1;
+	   if (titleStartPos < 3) {
+		  return ""  // messed up formatting. Can't conclude it changed.
+		}
+		var titleEndPos = data.indexOf("<", titleStartPos);
+		if (titleEndPos < titleStartPos + 1) {
+			return ""  // Title is empty. Illegal. Can't accept as new title.
+		}
+		var currentTitleInContent = data.substring(titleStartPos, titleEndPos);
+	   if (currentTitleInContent == topicTitle) {
+		  return ""
+		} else {
+		  return currentTitleInContent;
+		}
+	}
+	
+		
+    function CreateEditor() {
+	   var contentDiv = document.getElementById('content');
+       contentDiv.setAttribute('contenteditable', 'true');	
+	   editor = CKEDITOR.inline(contentDiv);
+    }
+
+    function DestroyEditor() {	
+	   var hasNewTitle = Save(true);
+	   if (hasNewTitle) {
+		  editing = false;
+	   } else {
+		   CKEDITOR.instances.content.destroy();
+		   var contentDiv = document.getElementById('content');
+	       contentDiv.setAttribute('contenteditable', 'false');	
+       }
+    }
+
+    function ToggleEditor() {
+	   edBtn = document.getElementById('editorButton');	
+	   if (editing) {
+	      DestroyEditor();
+	      editing = false;	
+
+          edBtn.value = "edit";	
+          edBtn.setAttribute('title','Make topic editable (click on text to edit)');	
+       } else {
+	      CreateEditor();	
+	      editing = true;
+          edBtn.value = "view";	  
+          edBtn.setAttribute('title',"Turn off 'click-to-edit' mode so that hyperlinks in topic text can be clicked");   
+	   }
+    }
+	
+	// ]]>	
+	</script>
+
+</head>
+<body>
+<form id="retitleForm" action="/saveAndRenameTopicAction" method="post">	
+<input type="hidden" name="topic" value="{{urlPath $topic}}" />
+<input type="hidden" name="newTitle" value="" />
+<input type="hidden" name="content" value="" />
+<input type="hidden" name="tok" value="{{.tok}}" />
+</form>	
+<table id="top">
+  <tr>
+	 <td id="topleft">
+	    <div id="grandparents">
+		   {{range grandParents $topic}}
+      		 <a href="{{.urlPathComponent}}?tok={{.tok}}">
+			       {{with .title}} 
+			          {{with noBreak .}}{{htm .}}{{end}}
+			       {{end}} 
+		       </a> &nbsp;
+	      {{end}}		
+	    </div> 
+	    <div id="parents">
+          
+
+	
+        {{if $topic.level}}  
+	       {{$topicPath := urlPath $topic}}
+	       {{$activeParent := $topic.activeParent}}	
+	       {{$parentLinks := $topic.parentLinks}}
+	       {{$numParents := length $parentLinks}}
+	 	   {{range $topic.parentLinks}}
+
+	          {{with .parent}}
+		          <a href="{{.urlPathComponent}}?tok={{.tok}}">
+			       {{with .title}} 
+			          {{with noBreak .}}{{htm .}}{{end}}
+			       {{end}} 
+		          </a> 
+                  {{if .level}}
+                     {{if gt $numParents 1}}
+	                     {{$children := .childLinks}}
+	                     {{$numChildren := length $children}}
+	                     {{if gt $numChildren 1}}
+	                         &nbsp;
+	                         {{if eq . $activeParent}}
+	                         <span class="activeParent">\\\</span>
+	                         {{else}}
+				             <a href="{{$topicPath}}/{{.urlPathComponent}}?tok={{.tok}}" class="parentChooser">
+					          \\\
+				             </a> 
+				             {{end}}
+			             {{end}}
+		             {{end}}
+		          {{end}}
+		          &nbsp; &nbsp;
+	          {{end}}
+           {{end}}	
+
+           {{if .editable}}
+	       	   {{with $topic.level}} 
+		          {{if gt . 1}}  					
+		            <form action="/addParent" method="post">
+					<input type="hidden" name="topic" value="{{$topicPath}}" />	
+                    <input type="hidden" name="tok" value="{{.tok}}" />					
+					<input type="submit" value=" + " title="Add a parent topic"/>
+				    </form>
+				  {{end}}
+			   {{end}}
+		   {{end}}
+	    {{end}}
+
+	    </div>	
+	    <table id="middle">
+          <tr>
+	        <td id="rel">
+		        <div id="related">
+					   {{range $topic.toLinks}}
+					       <a href="{{.to.urlPathComponent}}?tok={{.tok}}">
+						       {{with .to.title}} 
+						          {{with noBreak .}}{{htm .}}{{end}}
+						       {{end}} 
+					       </a> &lt;-<br/>
+				       {{end}}
+				       {{if .editable}}	
+							<form action="/addTo" method="post">
+							<input type="hidden" name="topic" value="{{urlPath $topic}}" />	
+                            <input type="hidden" name="tok" value="{{.tok}}" />								
+							<input type="submit" value=" &lt;+ " title="Add a topic that this topic relates to" />
+						    </form>	
+					   {{end}}			
+					   {{range $topic.fromLinks}}
+					       <a href="{{.from.urlPathComponent}}?tok={{.tok}}">
+						       {{with .from.title}} 
+						          {{with noBreak .}}{{htm .}}{{end}}
+						       {{end}} 
+					       </a> -&gt;<br/>
+				       {{end}}	
+				       {{if .editable}}			
+							<form action="/addFrom" method="post">
+							<input type="hidden" name="topic" value="{{urlPath $topic}}" />	
+                            <input type="hidden" name="tok" value="{{.tok}}" />								
+							<input type="submit" value=" +&gt; " title="Add a topic that relates to this topic" />
+						    </form>	
+					   {{end}}				
+		        </div>
+	        </td>
+		    <td id="cont">
+		       <div id="content" onBlur="Save(true)" >
+		        {{with $topic.content}}{{htm .}}{{end}}
+		       </div>
+		     </td>
+	       </tr>
+         </table>		
+	 </td>
+	<td id="topright">
+		<div id="controls">
+			<form action="/topicSearch" method="post">
+			<input type="hidden" name="topic" value="{{urlPath $topic}}" />	
+			<input type="hidden" name="next" value="topic" />			
+			<input type="hidden" name="rel" value="none" />	
+            <input type="hidden" name="tok" value="{{.tok}}" />				
+			<table>
+				<tr>
+					<td><input type="text" size="30" name="key" /></td>	
+                    <td><input type="submit" value="search" /></td>
+		       </tr>
+	        </table>
+		    </form>	
+		<br/>
+		    <p>
+		    {{if .editable}}				
+			   <input type="button" id="editorButton" value="edit" onclick="ToggleEditor()" title="Make topic editable (click on text to edit)"/>
+			{{end}}
+			</p> 		
+		</div>	
+		<div id="siblings">
+        {{if $topic.activeParent}} 			
+			   {{$self := $topic}}
+			   {{range $topic.activeParent.childLinks}}
+			      {{with .child}}
+			        {{if neq . $self}}
+			         <a href="{{.urlPathComponent}}?tok={{.tok}}">
+				         {{with .title}} 
+				            {{with noBreak .}}{{htm .}}{{end}}
+				         {{end}} 
+			         </a> <br/>
+			        {{end}}
+		          {{end}}
+		    {{end}}	
+		    {{if .editable}}		
+				<form action="/addSibling" method="post">
+				<input type="hidden" name="topic" value="{{urlPath $topic}}" />	
+                <input type="hidden" name="tok" value="{{.tok}}" />					
+				<input type="submit" value=" + " title="Add a sibling topic" />
+			    </form>
+			{{end}}
+		{{end}}
+		</div>		
+	</td>
+  </tr>
+</table>
+
+<div id="children">	
+	   {{range $topic.childLinks}}
+       <a href="{{.child.urlPathComponent}}?tok={{.tok}}">
+	       {{with .child.title}} 
+	          {{with noBreak .}}{{htm .}}{{end}}
+	       {{end}} 
+       </a> &nbsp;
+
+    {{end}}	
+		{{if .editable}}
+			<form action="/addChild" method="post">
+			<input type="hidden" name="topic" value="{{urlPath $topic}}" />	
+            <input type="hidden" name="tok" value="{{.tok}}" />				
+			<input type="submit" value=" + " title="Add a child topic" />
+		    </form>	
+	    {{end}}
+</div> 
+<div id="grandchildren">
+	   {{range grandChildren $topic}}
+     		 <a href="{{.urlPathComponent}}?tok={{.tok}}">
+		       {{with .title}} 
+		          {{with noBreak .}}{{htm .}}{{end}}
+		       {{end}} 
+	       </a> &nbsp;
+      {{end}}
+</div>
+<script type='text/javascript'>
+   CKEDITOR.disableAutoInline=true;
+</script>
+</body>
+</html>

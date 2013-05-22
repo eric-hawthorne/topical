@@ -1,0 +1,50 @@
+<html>
+<head>
+	<title>Topical - Choose a Topic</title>
+	
+ <link rel="stylesheet" type="text/css" id="stylesheet"
+       href="/styles/default.css" />	
+</head>
+<body>
+  <h1>Topical - Choose a Topic</h1>
+  {{$next := .next}}
+  {{$rel := .rel}}
+  {{$topic := .topic}}	
+  <table>
+  {{range .topics}}
+    <tr>
+	  {{if eq $rel "none"}} 
+      <form action="{{urlPath .}}" method="post">
+	  <td rowspan="2" style="vertical-align: middle">
+	  <input type="submit" value="display" />	      
+	  {{else}}		
+      <form action="{{$next}}" method="post">
+      <input type="hidden" name="topic" value="{{$topic}}" />	
+      <input type="hidden" name="rel" value="{{$rel}}" />
+      <input type="hidden" name="chosen" value="{{urlPath .}}" />
+      <td rowspan="2" style="vertical-align: middle">
+      <input type="submit" value="link as {{$rel}}" />
+      {{end}}
+      </td>
+      </form>
+      <td>
+      <b>{{.title}}</b>
+      </td>
+    </tr>
+    <tr>
+	  <td>
+		{{$title := .title}}
+		{{with .content}}{{with first . 240}}{{stripTagsAndTitle . $title}}{{end}}{{end}}
+	  </td>
+    </tr>
+  {{end}} 
+  </table>
+<br/>
+   <p>
+  <form action="{{.topic}}" method="post">
+	<input type="submit" value="Cancel" />
+	</form>
+   </p>
+
+</body>
+</html>

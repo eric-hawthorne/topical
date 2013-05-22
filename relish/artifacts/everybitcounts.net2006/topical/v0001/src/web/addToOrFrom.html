@@ -1,0 +1,58 @@
+<html>
+<head>
+	<title>Topical - Add a {{.relCap}} Topic</title>
+	
+ <link rel="stylesheet" type="text/css" id="stylesheet"
+       href="/styles/default.css" />	
+</head>
+<body>
+  <h1>Topical - Add a {{.relCap}} Topic</h1>
+  <p>
+	Add a {{.rel}} topic for topic<br/><b>{{.title}}</b>.
+  </p>
+
+  <form action="topicSearch" method="post">
+  <input type="hidden" name="next" value="linkExisting" />
+  <input type="hidden" name="rel" value="{{.rel}}" />
+  <input type="hidden" name="topic" value="{{.url}}" />
+  <table>
+	<tr>
+      <td>Find existing topic:</td>
+      <td><input type="text" size="30" name="key" /></td>
+      <td><input type="submit" value="search" /></td>
+    </tr>
+  </table>
+  </form>
+<br/>
+<hr/>
+<br/>
+  or... Create a new {{.rel}} topic 
+  <form action="linkNewTopicAction" method="post">
+	<input type="hidden" name="linkType" value="{{.rel}}" />
+	<input type="hidden" name="topic" value="{{.url}}" />
+	<table>
+	  <tr>
+		<td>
+			{{.relCap}} Topic Title:
+		</td>
+		<td>
+			<input type="text" size="70" name="title" id="title" />
+		</td>
+	  </tr>	
+	  <tr>
+		<td colspan="2">
+			<center>
+				<input type="submit" value="create {{.rel}} topic" />
+			</center>
+		</td>
+	  </tr>	
+	</table>
+  </form>  
+     <p>
+    <form action="{{.url}}" method="post">
+	<input type="submit" value="Cancel" />
+	</form>
+     </p>
+
+</body>
+</html>

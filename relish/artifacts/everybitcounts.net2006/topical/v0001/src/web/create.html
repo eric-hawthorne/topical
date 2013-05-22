@@ -1,0 +1,52 @@
+<html>
+<head>
+	<title>Topical - Create an Ontology</title>
+	
+ <link rel="stylesheet" type="text/css" id="stylesheet"
+       href="/styles/default.css" />	
+</head>
+<body>
+  <h1>Topical - Create and Ontology</h1>
+
+
+
+  <form action="/createAction" method="post">
+  <p>
+	Confirm that you want to create a new ontology identified as follows:
+  <table>
+	<input type="hidden" name="ontologyUrlPath" id="ontologyUrlPath" value="{{.urlPath}}" />
+	<tr>
+		<td>
+			Ontology Name:
+		</td>
+		<td>
+			{{.name}}
+		</td>
+	</tr>	
+	<tr>				
+		<td>
+			URL path:
+		</td>
+		<td>	
+			{{.urlPath}}
+		</td>	
+	</tr>
+	<tr>
+		<td>
+			Root Topic Title (edit as needed):
+		</td>
+		<td>
+			<input type="text" size="70" name="rootTopicTitle" id="rootTopicTitle" value="{{.name}}" />
+		</td>
+	</tr>		
+  </table>
+
+	
+     <p>
+	<input type="submit" name="action" value="Create Ontology" /> 	
+	&#160; &#160; &#160;
+	<input type="submit" name="action" value="Cancel" />
+     </p>
+   </form>
+</body>
+</html>

@@ -1,0 +1,206 @@
+origin   everybitcounts.net2006
+artifact topical
+package  view
+
+"""
+ view_state.rel
+
+ Objects that keep track of the state of visits and dialogs in user interaction with the system.
+"""
+
+import
+   model
+   strings
+   datetime
+
+
+Visit
+"""
+ A visit to the website.
+ Used to hold session state. 
+"""
+   token String
+   ipAddress String
+   startTime Time
+   loggedInTime Time
+   lastRequestTime Time
+   notice String
+   noticeType String  // "error" | "warning" | "info"
+
+
+initVisit v Visit > Visit
+"""
+ Constructor.
+"""
+   v.startTime = now "UTC"
+   v.token = nextToken v.startTime
+   v.lastRequestTime = v.startTime
+   v.loggedInTime = Time  // Zero time means not logged in
+   v.notice = ""
+   v.noticeType = ""
+   => v
+
+
+Visit [<startTime] 0 N -- 0 1 model.User
+
+
+ADMIN_SESSION_TIMEOUT_MINUTES = 60
+
+
+isLoggedIn visit Visit > Bool
+"""
+ Whether the visit is currently logged in as an administrator.    
+"""
+   if not visit.loggedInTime
+      => false
+   sessionInactiveMinutes = minutesEquivalentOf since visit.lastRequestTime 
+   => lte sessionInactiveMinutes ADMIN_SESSION_TIMEOUT_MINUTES
+
+
+isExpired visit Visit > Bool
+"""
+ Whether the visit was logged in but is now expired.   
+"""
+   if not visit.loggedInTime
+      => false
+   sessionInactiveMinutes = minutesEquivalentOf since visit.lastRequestTime 
+   => gt sessionInactiveMinutes ADMIN_SESSION_TIMEOUT_MINUTES
+
+
+ensureActiveSession token String back String
+> 
+   visit Visit 
+   backUrl String 
+"""
+ TODO Should be ?Visit above
+ Ensures that the token identifies an unexpired session.
+ If not, returns a nil Visit and a back url and sets error details.
+ Response should be to continue if the returned Visit is non-nil,
+ otherwise to display the back url passing the error info.
+"""
+   backUrl = back
+   if exists token
+      visit = summon token
+      sessionInactiveMinutes = minutesEquivalentOf since visit.lastRequestTime 
+      if gt sessionInactiveMinutes ADMIN_SESSION_TIMEOUT_MINUTES
+         visit = nil
+         =>
+      visit.lastRequestTime = now "UTC"
+
+
+ensureHavePermission tok String permissionType String resource model.Resource
+>
+   visit Visit
+   err String
+"""
+ If the user visiting in the visit identified by the token has the specified permission
+ to the resource, returns the visit object and an empty error string.
+
+ If there is no token, the guest user is fetched, a visit is created for it,
+ and it is determined whether the guest user has the specified permission.
+
+ If the visit is expired, a suitable error message is returned as
+ err. In this case, a new visit is returned along with the error message.
+
+ If the visit  has no user, a suitable error message is returned as
+ err. In this case, a  newly created visit is returned along with the error message.
+
+ If the visit is a properly logged in user, but the user does not have the specified 
+ permission, again a nil visit is returned, and an error message.
+"""
+   if not tok
+      visit = Visit
+      user = model.ensureGuestUser
+      visit.user = user
+      dub visit visit.token
+   else
+      visit = summon tok
+      if not isLoggedIn visit
+         if isExpired visit
+            err = "Your session has expired. Please log in again."
+            user = visit.user
+            visit = Visit
+            visit.user = user
+            dub visit visit.token       
+         else  // must not have a user
+            err = "Please log in as a Topical user."
+   if not err
+      if not hasPermission visit.user permissionType resource
+         err = "Please log in as a user permitted to view this page."
+         visit = Visit
+         dub visit visit.token    
+   if err
+      setWarning visit err
+
+
+ensureLoggedIn token String back String
+> 
+   visit Visit 
+   backUrl String 
+"""
+ TODO Should be ?Visit above
+ Ensures that the token identifies an unexpired and logged in session.
+ If not, returns a nil Visit and a back url and sets error details.
+ Response should be to continue if the returned Visit is non-nil,
+ otherwise to display the back url passing the error info.
+"""
+   backUrl = back
+   if exists token
+      visit = summon token
+      if not isLoggedIn visit
+         setError visit "Your login session has expired."
+         backUrl = cat backUrl "?tok=" token
+      elif not visit.user
+         setError visit "You must log in as a topical user."   
+         backUrl = cat backUrl "?token=" token
+      else
+         visit.lastRequestTime = now "UTC"
+
+
+
+getNotice visit Visit > formattedNotice String
+"""
+ Return an html-formatted version of an error, warning, or info notice, and also
+ resets the notice and noticeType to "" 
+"""
+   if visit.notice
+      formattedNotice = 
+         fill "<div class='%sNotice'>%s</div>" visit.noticeType visit.notice
+      visit.notice = ""
+      visit.noticeType = ""
+      
+
+setError visit Visit message String
+"""
+ Set an error notice on the visit.
+"""
+   visit.notice = message
+   visit.noticeType = "error"
+
+
+setWarning visit Visit message String
+"""
+ Set a warning notice on the visit.
+"""
+   visit.notice = message
+   visit.noticeType = "warning"
+
+
+setInfo visit Visit message String
+"""
+ Set an informational notice on the visit.
+"""
+   visit.notice = message
+   visit.noticeType = "info"
+
+
+nextToken t Time > String
+"""
+ Generate a token suitable for identifying a session.
+ Currently just uses a hash of the time. Should use another factor such
+ as an incrementing number.
+"""
+   => replace
+         base64Hash format t "2006-01-02T15:04:05.999999999Z07:00"
+         "="
+         ""

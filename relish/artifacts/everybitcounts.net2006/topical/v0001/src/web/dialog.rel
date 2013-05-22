@@ -1,0 +1,452 @@
+origin   everybitcounts.net2006
+artifact topical
+package  web
+
+"""
+ dialog.rel
+
+ Web request handlers.
+"""
+
+import
+   model
+   view
+   strings
+
+
+index 
+   ...kw {} String > String 
+> 
+   String 
+   Any
+"""
+ Handles a request for the root (i.e. empty path) url on the server and port.
+ Should yield a list of ontologies.
+"""  
+   nextUrl nextFound = kw["next"]
+   if not nextFound
+      mextUrl = ""
+
+   tok tokFound = kw["tok"]
+   if tokFound
+      visit = summon tok
+      notice = getNotice visit
+   else
+      notice = ""
+
+   => "index.html"
+      {
+         "next"   => nextUrl
+         "notice" => notice
+      }String > Any
+
+
+listOntologies username String > String List
+"""
+ Handles a request for the root (i.e. empty path) url on the server and port.
+ Should yield a list of ontologies.
+"""
+   user = summon username 
+   => "listOntologies.html"
+      user.ontologies
+
+
+// icon > String String
+// """
+//  Serves the favicon.ico request.
+// """
+//    => "IMAGE FILE"
+//       "favicon.png"
+
+
+// default orgId String ...kw {} String > String ...args [] String > String Any
+
+
+default 
+   ...kw {} String > String
+   ...args [] String
+>
+   String 
+   Any
+"""
+ Handles all url paths on this server and port which are not otherwise handled.
+
+ Permission cases:
+
+ If no token, then user = model.ensureGuestUser
+ else 
+   visit err = ensureLoggedInUser tok
+   if err 
+       goToLoginPage maybe visit.user err next = topic or ontologyUrl
+    else
+       viewable = hasPermission user  "view" topic.ontology
+       if not viewa
+       editable = hasPermission user  "edit" topic.ontology
+
+"""
+   tok = kw[! "tok"]
+
+   username = args[0] 
+
+   if eq (len args) 1 
+      => "REDIRECT"
+         cat "/listOntologies/" username
+
+   ontologyUrlPath = cat "/" username "/" args[1]
+
+   if exists ontologyUrlPath
+      if eq (len args) 2
+         ontology = summon ontologyUrlPath
+         => "REDIRECT"
+            cat ontologyUrlPath "/" ontology.root.urlPathComponent
+      else            
+         topicUrlPathComponent = args[2]
+         topicUrlPath = cat ontologyUrlPath "/" topicUrlPathComponent
+         if exists topicUrlPath
+            topic = summon topicUrlPath
+
+            if eq (len args) 4
+               activeParentUrlPathComponent = args[3]
+               activeParentUrlPath = cat ontologyUrlPath "/" activeParentUrlPathComponent
+               if exists activeParentUrlPath
+                  topic.activeParent = summon activeParentUrlPath
+               else
+                  => errPage fill "Error: Unknown topic '%s'" activeParentUrlPath
+                             "Ok"       
+                             ontologyUrlPath
+               => "REDIRECT"
+                  topicUrlPath
+ 
+            ensureActiveParent topic
+
+            visit err = ensureHavePermission tok "view" topic.ontology 
+
+            if err
+               => "REDIRECT"
+                  cat "/?next=" topicUrlPath "&tok=" visit.token 
+
+            editable = hasPermission visit.user "edit" topic.ontology
+
+
+            => "topic.html" 
+               {
+                  "topic"    => topic
+                  "editable" => editable
+                  "tok"      => visit.token
+               }String > Any
+         else
+            => errPage fill "Error: Unknown topic '%s'" topicUrlPath
+                       "Ok"       
+                       ontologyUrlPath
+   else
+      if eq (len args) 2
+         => "REDIRECT"
+            cat "/create" ontologyUrlPath
+      else
+         => errPage fill "Error: Unknown ontology '%s'" ontologyUrlPath
+                    "Ok"       
+                    cat "/" username
+
+
+create username String ontologyUrlPath String > String Any
+"""
+ Confirms that the user wishes to create a new ontology with the given name.
+ Also verifies, again, that such an ontology does not already exist.
+"""
+   ontologyUrlPath = cat "/" username "/" ontologyUrlPath
+   => "create.html"
+      {
+         "urlPath" => ontologyUrlPath
+         "name"    => ontologyNameFormat ontologyUrlPath
+      }String > String
+
+
+createAction ontologyUrlPath String rootTopicTitle String action String > String Any
+"""
+ Actually creates a new ontology, after verifying that the ontology name does not already exist.
+"""
+   i = lastIndex ontologyUrlPath "/"  
+   username = slice ontologyUrlPath 1 i
+
+   if eq action "Cancel"
+      => "REDIRECT"
+         cat "/" username
+
+   if exists ontologyUrlPath
+      => errPage fill "Error: Ontology '%s' already exists." ontologyUrlPath
+                 "Ok"       
+                 cat "/" username
+
+   user = summon username
+
+   topic = model.Topic
+   topic.title = rootTopicTitle
+   topic.urlPathComponent = urlSanitize rootTopicTitle
+   topic.content = cat "<h1>" rootTopicTitle "</h1>"
+
+   ontology = model.Ontology
+   ontology.name = ontologyNameFormat ontologyUrlPath
+   ontology.urlPathComponent = ontologyUrlPath
+   ontology.description = ""
+   ontology.user = user
+
+   grantPermission user "view" ontology
+   grantPermission user "edit" ontology
+   grantPermission user "create" ontology
+   grantPermission user "delete" ontology
+   grantPermission user "rename" ontology
+
+   ontology.root = topic
+   topic.level = 0  // I am the root topic
+   topic.ontology = ontology
+
+   dub ontology ontologyUrlPath
+
+   topicUrlPath = urlPath topic
+
+   dub topic topicUrlPath
+
+   => "REDIRECT"
+      topicUrlPath
+
+
+addParent topic String tok String > String Any
+"""
+ Display a dialog asking user to either search for a topic to be the parent,
+ or create a new topic to be the parent.
+"""
+   childTopic = summon topic
+   => "addParentOrChild.html"
+      {"url"=>topic "title"=>childTopic.title "rel"=>"parent" "relCap"=>"Parent" "tok"=>tok}String > String
+      
+
+addChild topic String  tok String > String Any
+"""
+ Display a dialog asking user to either search for a topic to be the child,
+ or create a new topic to be the child.
+"""
+   parentTopic = summon topic
+   => "addParentOrChild.html"
+      {"url"=>topic "title"=>parentTopic.title "rel"=>"child" "relCap"=>"Child" "tok"=>tok}String > String
+
+
+addTo topic String  tok String > String Any
+"""
+ Display a dialog asking user to either search for a topic to be the target of a relationship arrow
+ or create a new topic to be the target.
+"""
+   fromTopic = summon topic
+   => "addToOrFrom.html"
+      {"url"=>topic "title"=>fromTopic.title "rel"=>"related-to" "relCap"=>"Related-To" "tok"=>tok}String > String
+
+
+
+addFrom topic String  tok String > String Any
+"""
+ Display a dialog asking user to either search for a topic to be the source of a relationship arrow
+ or create a new topic to be the source.
+"""
+   toTopic = summon topic
+   => "addToOrFrom.html"
+      {"url"=>topic "title"=>toTopic.title "rel"=>"related-from" "relCap"=>"Related-From" "tok"=>tok}String > String
+
+
+addSibling topic String  tok String > String Any
+"""
+ Display a dialog asking user to either search for a topic to be a sibling of the topic under its
+ active parent.
+"""
+   currentChildTopic = summon topic
+   => "addSibling.html"
+      {
+         "url"    => topic 
+         "title"  => currentChildTopic.title 
+         "parent" => currentChildTopic.activeParent
+         "tok"    => tok
+      }String > Any
+
+
+
+linkNewTopicAction linkType String topic String title String tok String > String Any
+"""
+ Create a new topic, and establish it in a particular type of linked relationship with
+ the original topic. Then display the new topic in the topic display UI.
+"""
+   title = trimSpace title
+   if not title
+      => errPage "Error: New topic must be given a title." 
+                 "Ok"       
+                 topic
+
+   fromTopic = summon topic
+   fromLevel = fromTopic.level
+
+   visit err = ensureHavePermission tok "edit" fromTopic.ontology
+   if err
+      => "REDIRECT" 
+         cat "/?next=" topic "&tok=" tok
+
+   newTopic = model.Topic
+   newTopic.title = title
+   newTopic.urlPathComponent = urlSanitize title
+   newTopic.content = cat "<h1>" title "</h1>"
+   
+
+   newTopic.ontology = fromTopic.ontology
+   
+   topicUrlPath = urlPath newTopic
+   
+   if exists topicUrlPath
+      => errPage fill "Error: Topic '%s' already exists." title
+                 "Ok"       
+                 topic
+
+   dub newTopic topicUrlPath
+
+   // Now link to the new topic from the old one.
+
+   if eq linkType "parent"
+      assertParentChild newTopic fromTopic
+      newTopic.level = minus fromLevel 1
+      fromTopic.activeParent = newTopic
+   elif eq linkType "related-to"
+      assertRelated fromTopic newTopic
+      newTopic.level = fromLevel
+   elif eq linkType "related-from"
+      assertRelated newTopic fromTopic  // the relation is from newTopic to current topic
+      newTopic.level = fromLevel
+   elif eq linkType "child"
+      assertParentChild fromTopic newTopic
+      newTopic.level = plus fromLevel 1
+      newTopic.activeParent = fromTopic
+   else  // must be a sibling
+      parent = fromTopic.activeParent
+      assertParentChild parent newTopic
+      newTopic.level = plus parent.level 1 
+      newTopic.activeParent = parent     
+      
+   => "REDIRECT"
+      cat topicUrlPath "?tok=" tok
+
+
+topicSearch next String rel String topic String key String tok String > String Any
+"""
+ Displays a page containing a list of topics whose title contains the key.
+ TODO extend to searching content.  
+"""
+   key = trimSpace key
+   if lt (len key) 2
+      => errPage "Please specify a longer keyword to search for topics."
+                 "Ok"       
+                 topic
+   print "got to 1"
+   topics1 = []model.Topic cat "title like '%" key "%' order by title"
+   print "got to 2"
+   if lt (len topics1) 30
+      print "got to 3"
+      topics2 = []model.Topic cat "content like '%" key "%' order by title"
+      print "got to 4"
+      topics3 = []model.Topic
+      for topic2 in topics2
+         print "got to 5"
+         if not contains topics1 topic2 
+            topics3 += topic2
+         print "got to 6"
+      for topic3 in topics3
+         print "got to 7"
+         topics1 += topic3
+      print "got to 8"
+   if not topics1
+      => errPage "No topics match your search key."
+                 "Ok"  
+                 topic    
+   => "chooseTopic.html"
+      {
+         "topics" => topics1
+         "next"   => next
+         "rel"    => rel
+         "topic"  => topic 
+         "tok"    => tok
+      }String > Any         
+
+
+
+linkExisting topic String chosen String rel String tok String > String Any
+"""
+ Link the chosen topic as a parent of the topic.
+ Then return to display the original topic.
+"""
+   fromTopic = summon topic
+   chosenTopic = summon chosen
+
+   visit err = ensureHavePermission tok "edit" fromTopic.ontology
+   if err
+      => "REDIRECT" 
+         cat "/?next=" topic "&tok=" tok
+
+   // Now link to the new topic from the old one.
+
+   if eq rel "parent"
+      assertParentChild chosenTopic fromTopic
+      fromTopic.activeParent = chosenTopic
+      possibleNewLevel = plus 1 chosenTopic.level
+      if lt possibleNewLevel fromTopic.level
+         fromTopic.level = possibleNewLevel
+   elif eq rel "related-to"
+      assertRelated fromTopic chosenTopic
+   elif eq rel "related-from"
+      assertRelated chosenTopic fromTopic  // the relation is from chosenTopic to current topic
+   elif eq rel "child"
+      assertParentChild fromTopic chosenTopic
+      chosenTopic.activeParent = fromTopic
+      possibleNewLevel = plus 1 fromTopic.level
+      if lt possibleNewLevel chosenTopic.level
+         chosenTopic.level = possibleNewLevel
+   else  // must be a sibling
+      parent = fromTopic.activeParent
+      if eq chosenTopic fromTopic
+         => errPage "Cannot choose self as a sibling."
+                    "Ok"  
+                    topic
+      assertParentChild parent chosenTopic 
+      chosenTopic.activeParent = parent  
+      possibleNewLevel = plus 1 parent.level
+      if lt possibleNewLevel chosenTopic.level
+         chosenTopic.level = possibleNewLevel
+
+   => "REDIRECT"
+      cat topic "?tok=" tok
+
+
+saveTopicAction topic String content String > String Int
+"""
+ Saves edited content of the topic.
+"""
+   editedTopic = summon topic
+   content = stripNbsps content
+   editedTopic.content = content
+   => "HTTP CODE" 200
+
+
+saveAndRenameTopicAction topic String content String newTitle String tok String > String String
+"""
+ Saves edited content of the topic, and also renames the topic.
+"""
+   editedTopic = summon topic
+
+   visit err = ensureHavePermission tok "edit" editedTopic.ontology
+   if err
+      => "REDIRECT" 
+         cat "/?next=" topic "&tok=" tok
+
+   content = stripNbsps content
+   newTitle = stripNbsps newTitle
+   editedTopic.content = content
+   editedTopic.title = newTitle
+   editedTopic.urlPathComponent = urlSanitize newTitle
+   editedTopicUrlPath = urlPath editedTopic
+   rename topic editedTopicUrlPath
+   => "REDIRECT"
+      cat editedTopicUrlPath "?tok=" tok
+
+

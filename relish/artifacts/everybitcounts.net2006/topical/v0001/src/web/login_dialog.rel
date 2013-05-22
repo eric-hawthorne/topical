@@ -1,0 +1,229 @@
+origin   everybitcounts.net2006
+artifact topical
+package  web
+
+"""
+ login_dialog.rel
+
+ Web request handlers for user login and signup dialogs.
+"""
+
+import
+   model
+   view
+   strings
+    
+
+loginAction 
+   username String 
+   pw String 
+   ...kw {} String > String 
+> 
+   String 
+   Any
+"""
+ Process a login or user signup dialog.
+"""
+   nextUrl nextFound = kw["next"]
+   
+   if nextFound
+      backUrl = cat "/?next=" nextUrl
+   else
+      backUrl = "/"
+
+   username = trimSpace username
+   pwHash = base64Hash pw
+   
+   if not username
+      => errPage fill "Please supply a username."
+                 "Ok"       
+                 backUrl
+
+   if not exists "GlobalPasswords"
+      => errPage "This web-app requires initialization."
+                 "Ok"       
+                 backUrl      
+
+   gp = summon "GlobalPasswords"
+
+   if eq pwHash gp.signupPwHash
+      // Creating new account
+      visit = view.Visit
+      dub visit visit.token
+      => "REDIRECT"
+         cat "/createUser?username=" username "&tok=" visit.token
+   
+   // Logging in to existing user account
+   if not exists username
+      => errPage "User name or password incorrect."
+                 "Ok"       
+                 backUrl         
+
+   user = summon username
+   if neq user.password pwHash
+      print pw pwHash user.password
+      => errPage "User name or password incorrect."
+                 "Ok"       
+                 backUrl  
+
+   visit = view.Visit
+   dub visit visit.token
+   visit.user = user 
+   visit.loggedInTime = visit.lastRequestTime
+
+   if nextFound
+      => "REDIRECT"
+         cat nextUrl "?tok=" visit.token
+
+   => "REDIRECT"
+      cat "/" username "?=" visit.token
+
+
+
+
+         
+createUser username String tok String > String Any
+"""
+ Display dialog inviting creation of a new user account.
+"""
+   visit back = ensureActiveSession tok "/"
+   if not visit
+      => "REDIRECT" back
+
+   => "createUser.html"
+      {
+         "token"     => tok
+         "username"  => username
+      }String > String
+      
+   
+createUserAction 
+   username String 
+   pw String
+   pw2 String
+   firstname String
+   lastname String
+   tok String 
+>
+   String
+   Any
+"""
+ Process creation of a new user account.
+"""
+   visit back = ensureActiveSession tok "/"
+   if not visit
+      => "REDIRECT" back
+ 
+   if neq pw pw2
+      setError visit "Passwords are not the same. Please re-type them." 
+      => "REDIRECT" 
+         cat "/createUser?tok=" tok
+
+   if exists username
+      setError visit "Sorry. '" username "' is already in use. Choose another." 
+      => "REDIRECT" 
+         "/" 
+
+   user = model.User
+   user.name = username
+   user.firstName = firstname
+   user.lastName = lastname
+   user.password = base64Hash pw
+   dub user username
+   visit.user = user
+   visit.loggedInTime = visit.lastRequestTime
+   => "REDIRECT"
+      cat "/" username "?tok=" tok 
+
+
+CHANGE_MASTER_PW_CONF_PAGE = """
+<html>
+<head>
+<title>Master Password Changed</title>
+</head>
+<body>
+<br/>
+<br/>
+<center>
+<h1>
+Master Password Changed
+</h1>
+</center>
+</body>
+</html>
+"""
+
+
+CHANGE_SIGNUP_PW_CONF_PAGE = """
+<html>
+<head>
+<title>Signup Password Changed</title>
+</head>
+<body>
+<br/>
+<br/>
+<center>
+<h1>
+Signup Password Changed
+</h1>
+</center>
+</body>
+</html>
+"""
+
+
+setMasterPassword > String String
+"""
+ Display dialog allowing setting of the webapp's master password.
+"""
+   => "setGlobalPassword.html"
+      "Master"
+
+
+setMasterPasswordAction masterPw String newPw1 String newPw2 String > String String
+"""
+ Change the master password.
+ If there is no master password in the database, then oldMasterPw can be the empty string.
+"""
+   model.ensureGlobalPasswords
+   g = summon "GlobalPasswords"
+   if g.masterPwHash
+      oldHash = base64Hash masterPw
+      if eq oldHash g.masterPwHash
+         if newPw1 
+            if eq newPw1 newPw2
+               g.masterPwHash = base64Hash newPw1
+               => "HTML"
+                  CHANGE_MASTER_PW_CONF_PAGE
+      => "HTML" "<html>Try Again.</html>"
+   elif newPw1 
+      if eq newPw1 newPw2
+         g.masterPwHash = base64Hash newPw1
+         => "HTML"
+            CHANGE_MASTER_PW_CONF_PAGE
+   => "HTML" "<html>Try Again.</html>"
+
+
+setSignupPassword > String String
+"""
+ Display dialog allowing setting of the webapp's new user signup password.
+"""
+   => "setGlobalPassword.html"
+      "Signup"
+
+
+setSignupPasswordAction masterPw String newPw1 String newPw2 String > String String
+"""
+ Change the signup password.
+"""
+   model.ensureGlobalPasswords
+   g = summon "GlobalPasswords"
+   if g.masterPwHash
+      enteredHash = base64Hash masterPw
+      if eq enteredHash g.masterPwHash
+         if newPw1 
+            if eq newPw1 newPw2
+               g.signupPwHash = base64Hash newPw1
+               => "HTML"
+                  CHANGE_SIGNUP_PW_CONF_PAGE
+   => "HTML" "<html>Try Again.</html>"
