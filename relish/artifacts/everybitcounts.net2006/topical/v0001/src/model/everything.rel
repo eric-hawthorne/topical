@@ -38,11 +38,31 @@ Topic
    lineColor ?String
    fillColor ?String
    titleColor ?String
-   pos ?Position  // Position will be assigned the first time topic is displayed in map view.
    level Int  // 0 = root, 1 = child of root, 2 or more = more indirect descendent of root than that 
    activeParent ?Topic  // Which parent should I show siblings of ?
    ontology Ontology
    
+
+abbrevTitle topic Topic maxLen Int > String
+"""
+ Returns the title of the topic but abbreviated to make a string of the specified maximum
+ length. The abbreviation replaces some characters in the middle of the title by ..
+ The maxLen must be reasonably long. E.g. at least 15 characters.
+"""
+   n = runeCount topic.title
+   if lte n maxLen 
+      => topic.title
+   endLength = 6
+   if gt maxLen 35
+      endLength = 8 
+   beginning = slice topic.title 
+                     0 
+                     minus n (plus endLength 2)
+   end = slice topic.title
+               minus n endLength
+
+   => cat beginning ".." end
+
 
 urlPath topic Topic > String
 """
@@ -60,7 +80,6 @@ Link
    label ?String
    color ?String
    labelColor ?String
-   pos ?Position  // Position of the label
 
 
 ParentChild <: Link
@@ -230,6 +249,11 @@ ensureActiveParent topic Topic
          break
 
 
+Link 0 1 -- 0 N Position
+
+
+Topic 0 1 -- 0 N Position
+
 
 Position
 """
@@ -238,4 +262,5 @@ Position
 """
    x Int
    y Int
+   user User
 

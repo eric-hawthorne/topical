@@ -15,6 +15,7 @@
   <input type="hidden" name="next" value="linkExisting" />
   <input type="hidden" name="rel" value="sibling" />
   <input type="hidden" name="topic" value="{{.url}}" />
+    <input type="hidden" name="tok" value="{{.tok}}" />	
   <table>
 	<tr>
       <td>Find existing topic:</td>
@@ -30,6 +31,7 @@
   <form action="linkNewTopicAction" method="post">
 	<input type="hidden" name="linkType" value="sibling" />
 	<input type="hidden" name="topic" value="{{.url}}" />
+    <input type="hidden" name="tok" value="{{.tok}}" />		
 	<table>
 	  <tr>
 		<td>

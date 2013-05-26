@@ -220,7 +220,7 @@ addParent topic String tok String > String Any
       {"url"=>topic "title"=>childTopic.title "rel"=>"parent" "relCap"=>"Parent" "tok"=>tok}String > String
       
 
-addChild topic String  tok String > String Any
+addChild topic String tok String > String Any
 """
  Display a dialog asking user to either search for a topic to be the child,
  or create a new topic to be the child.
@@ -230,7 +230,7 @@ addChild topic String  tok String > String Any
       {"url"=>topic "title"=>parentTopic.title "rel"=>"child" "relCap"=>"Child" "tok"=>tok}String > String
 
 
-addTo topic String  tok String > String Any
+addTo topic String tok String > String Any
 """
  Display a dialog asking user to either search for a topic to be the target of a relationship arrow
  or create a new topic to be the target.
@@ -241,7 +241,7 @@ addTo topic String  tok String > String Any
 
 
 
-addFrom topic String  tok String > String Any
+addFrom topic String tok String > String Any
 """
  Display a dialog asking user to either search for a topic to be the source of a relationship arrow
  or create a new topic to be the source.
@@ -251,7 +251,7 @@ addFrom topic String  tok String > String Any
       {"url"=>topic "title"=>toTopic.title "rel"=>"related-from" "relCap"=>"Related-From" "tok"=>tok}String > String
 
 
-addSibling topic String  tok String > String Any
+addSibling topic String tok String > String Any
 """
  Display a dialog asking user to either search for a topic to be a sibling of the topic under its
  active parent.

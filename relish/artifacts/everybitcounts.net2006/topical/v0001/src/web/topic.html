@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  {{$topic := .topic}}	
+  {{$topic := .topic}}
+  {{$tok := .tok}}	
   <title>{{$topic.title}}</title>
 
  <link rel="stylesheet" type="text/css" id="stylesheet"
@@ -126,7 +127,7 @@
 	 <td id="topleft">
 	    <div id="grandparents">
 		   {{range grandParents $topic}}
-      		 <a href="{{.urlPathComponent}}?tok={{.tok}}">
+      		 <a href="{{.urlPathComponent}}?tok={{$tok}}">
 			       {{with .title}} 
 			          {{with noBreak .}}{{htm .}}{{end}}
 			       {{end}} 
@@ -145,7 +146,7 @@
 	 	   {{range $topic.parentLinks}}
 
 	          {{with .parent}}
-		          <a href="{{.urlPathComponent}}?tok={{.tok}}">
+		          <a href="{{.urlPathComponent}}?tok={{$tok}}">
 			       {{with .title}} 
 			          {{with noBreak .}}{{htm .}}{{end}}
 			       {{end}} 
@@ -159,7 +160,7 @@
 	                         {{if eq . $activeParent}}
 	                         <span class="activeParent">\\\</span>
 	                         {{else}}
-				             <a href="{{$topicPath}}/{{.urlPathComponent}}?tok={{.tok}}" class="parentChooser">
+				             <a href="{{$topicPath}}/{{.urlPathComponent}}?tok={{$tok}}" class="parentChooser">
 					          \\\
 				             </a> 
 				             {{end}}
@@ -175,7 +176,7 @@
 		          {{if gt . 1}}  					
 		            <form action="/addParent" method="post">
 					<input type="hidden" name="topic" value="{{$topicPath}}" />	
-                    <input type="hidden" name="tok" value="{{.tok}}" />					
+                    <input type="hidden" name="tok" value="{{$tok}}" />					
 					<input type="submit" value=" + " title="Add a parent topic"/>
 				    </form>
 				  {{end}}
@@ -189,7 +190,7 @@
 	        <td id="rel">
 		        <div id="related">
 					   {{range $topic.toLinks}}
-					       <a href="{{.to.urlPathComponent}}?tok={{.tok}}">
+					       <a href="{{.to.urlPathComponent}}?tok={{$tok}}">
 						       {{with .to.title}} 
 						          {{with noBreak .}}{{htm .}}{{end}}
 						       {{end}} 
@@ -198,12 +199,12 @@
 				       {{if .editable}}	
 							<form action="/addTo" method="post">
 							<input type="hidden" name="topic" value="{{urlPath $topic}}" />	
-                            <input type="hidden" name="tok" value="{{.tok}}" />								
+                            <input type="hidden" name="tok" value="{{$tok}}" />								
 							<input type="submit" value=" &lt;+ " title="Add a topic that this topic relates to" />
 						    </form>	
 					   {{end}}			
 					   {{range $topic.fromLinks}}
-					       <a href="{{.from.urlPathComponent}}?tok={{.tok}}">
+					       <a href="{{.from.urlPathComponent}}?tok={{$tok}}">
 						       {{with .from.title}} 
 						          {{with noBreak .}}{{htm .}}{{end}}
 						       {{end}} 
@@ -212,7 +213,7 @@
 				       {{if .editable}}			
 							<form action="/addFrom" method="post">
 							<input type="hidden" name="topic" value="{{urlPath $topic}}" />	
-                            <input type="hidden" name="tok" value="{{.tok}}" />								
+                            <input type="hidden" name="tok" value="{{$tok}}" />								
 							<input type="submit" value=" +&gt; " title="Add a topic that relates to this topic" />
 						    </form>	
 					   {{end}}				
@@ -232,7 +233,7 @@
 			<input type="hidden" name="topic" value="{{urlPath $topic}}" />	
 			<input type="hidden" name="next" value="topic" />			
 			<input type="hidden" name="rel" value="none" />	
-            <input type="hidden" name="tok" value="{{.tok}}" />				
+            <input type="hidden" name="tok" value="{{$tok}}" />				
 			<table>
 				<tr>
 					<td><input type="text" size="30" name="key" /></td>	
@@ -253,7 +254,7 @@
 			   {{range $topic.activeParent.childLinks}}
 			      {{with .child}}
 			        {{if neq . $self}}
-			         <a href="{{.urlPathComponent}}?tok={{.tok}}">
+			         <a href="{{.urlPathComponent}}?tok={{$tok}}">
 				         {{with .title}} 
 				            {{with noBreak .}}{{htm .}}{{end}}
 				         {{end}} 
@@ -264,7 +265,7 @@
 		    {{if .editable}}		
 				<form action="/addSibling" method="post">
 				<input type="hidden" name="topic" value="{{urlPath $topic}}" />	
-                <input type="hidden" name="tok" value="{{.tok}}" />					
+                <input type="hidden" name="tok" value="{{$tok}}" />					
 				<input type="submit" value=" + " title="Add a sibling topic" />
 			    </form>
 			{{end}}
@@ -276,7 +277,7 @@
 
 <div id="children">	
 	   {{range $topic.childLinks}}
-       <a href="{{.child.urlPathComponent}}?tok={{.tok}}">
+       <a href="{{.child.urlPathComponent}}?tok={{$tok}}">
 	       {{with .child.title}} 
 	          {{with noBreak .}}{{htm .}}{{end}}
 	       {{end}} 
@@ -286,14 +287,14 @@
 		{{if .editable}}
 			<form action="/addChild" method="post">
 			<input type="hidden" name="topic" value="{{urlPath $topic}}" />	
-            <input type="hidden" name="tok" value="{{.tok}}" />				
+            <input type="hidden" name="tok" value="{{$tok}}" />				
 			<input type="submit" value=" + " title="Add a child topic" />
 		    </form>	
 	    {{end}}
 </div> 
 <div id="grandchildren">
 	   {{range grandChildren $topic}}
-     		 <a href="{{.urlPathComponent}}?tok={{.tok}}">
+     		 <a href="{{.urlPathComponent}}?tok={{$tok}}">
 		       {{with .title}} 
 		          {{with noBreak .}}{{htm .}}{{end}}
 		       {{end}} 
