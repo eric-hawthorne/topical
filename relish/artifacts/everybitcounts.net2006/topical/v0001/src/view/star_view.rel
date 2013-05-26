@@ -1,0 +1,348 @@
+origin   everybitcounts.net2006
+artifact topical
+package  view
+
+"""
+ star_view.rel
+
+ Calculation of positioning of topics in a star-shaped graph view centred around the selected topic.
+"""
+
+import
+   model
+   strings
+   datetime
+
+
+MIN_Y_SEPARATION = 100
+Y_SEP_GROWTH = 25
+CHAR_WIDTH = 10
+MAX_TITLE_CHARS_DISPLAYED = 40
+X_MIN = 10
+Y_ADJUST_INCREMENT = 12
+
+
+
+setGraphPositions 
+   topic model.Topic 
+   user model.User
+"""
+ Computes positions for topic nodes in a node-and-edge topic graph centred on 
+ the specified topic.
+ The positions are represented as position objects related to the user and each topic.
+""" 
+   wa = ancestorsWidth topic
+   wd = descendantsWidth topic
+   width = plus
+              max wa wd
+              times 2 X_MIN
+   x = divide width 2
+   y = divide height 2 
+
+   position = nil
+   for pos in topic.positions
+      if eq pos.user user
+         position = pos
+         break
+   if not position
+      position = model.Position
+      position.user = user
+
+   position.x = x
+   position.y = y
+   position.topic = topic
+
+
+   // Lay out Parents
+   np = len topic.parentLinks
+   yi = minus y MIN_Y_SEPARATION 
+   yAdjust = times Y_ADJUST_INCREMENT (divide np 2)
+   yi = minus yi yAdjust
+
+   if np
+      xi = X_MIN
+      for parentLink in topic.parentLinks
+         parent = parentLink.parent
+         position = nil
+         for pos in parent.positions
+            if eq pos.user user
+               position = pos
+               break
+         if not position
+            position = model.Position
+            position.user = user
+
+         position.x = xi
+         position.y = yi         
+         position.topic = parent
+
+         offset = times
+                     min (len parent.title) MAX_TITLE_CHARS_DISPLAYED
+                     CHAR_WIDTH
+
+         xi = plus xi offset
+         yi = plus yi Y_ADJUST_INCREMENT
+      
+      // Collect Grandparents
+      grandParents = []model.Topic
+      for parentLink in topic.parentLinks
+         parent = parentLink.parent
+         for gpLink in parent.parentLinks
+            grandParents += gpLink.parent
+
+      // Lay out Grandparents
+      ngp = len grandParents
+      yi = minus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
+      yAdjust = times Y_ADJUST_INCREMENT (divide ngp 2)
+      yi = minus yi yAdjust
+
+      if ngp
+         xi = X_MIN
+         for grandParent in grandParents
+            position = nil
+            for pos in grandParent.positions
+               if eq pos.user user
+                  position = pos
+                  break
+            if not position
+               position = model.Position
+               position.user = user
+
+            position.x = xi
+            position.y = yi         
+            position.topic = grandParent
+
+            offset = times
+                        min (len grandParent.title) MAX_TITLE_CHARS_DISPLAYED
+                        CHAR_WIDTH
+
+            xi = plus xi offset
+            yi = plus yi Y_ADJUST_INCREMENT   
+
+
+         // Collect Great Grandparents
+         greatGrandParents = []model.Topic
+         for grandparent in grandParents
+            for ggpLink in grandparent.parentLinks
+               greatGrandParents += ggpLink.parent
+
+         // Lay out Great Grandparents
+         nggp = len greatGrandParents
+         yi = minus yi 
+                    plus MIN_Y_SEPARATION (times 2 Y_SEP_GROWTH)
+         yAdjust = times Y_ADJUST_INCREMENT (divide nggp 2)
+         yi = minus yi yAdjust
+
+         if nggp
+            xi = X_MIN
+            for greatGrandParent in greatGrandParents
+               position = nil
+               for pos in greatGrandParent.positions
+                  if eq pos.user user
+                     position = pos
+                     break
+               if not position
+                  position = model.Position
+                  position.user = user
+
+               position.x = xi
+               position.y = yi         
+               position.topic = greatGrandParent
+
+               offset = times
+                           min (len greatGrandParent.title) MAX_TITLE_CHARS_DISPLAYED
+                           CHAR_WIDTH
+
+               xi = plus xi offset
+               yi = plus yi Y_ADJUST_INCREMENT   
+
+
+   // Lay out Children
+   nc = len topic.childLinks
+   yi = plus y MIN_Y_SEPARATION 
+   yAdjust = times Y_ADJUST_INCREMENT (divide nc 2)
+   yi = minus yi yAdjust
+
+   if nc
+      xi = X_MIN
+      for childLink in topic.childLinks
+         child = childLink.child
+         position = nil
+         for pos in child.positions
+            if eq pos.user user
+               position = pos
+               break
+         if not position
+            position = model.Position
+            position.user = user
+
+         position.x = xi
+         position.y = yi         
+         position.topic = child
+
+         offset = times
+                     min (len child.title) MAX_TITLE_CHARS_DISPLAYED
+                     CHAR_WIDTH
+
+         xi = plus xi offset
+         yi = plus yi Y_ADJUST_INCREMENT
+      
+      // Collect Grandchildren
+      grandChildren = []model.Topic
+      for childLink in topic.childLinks
+         child = childLink.child
+         for gpLink in child.childLinks
+            grandChildren += gpLink.child
+
+      // Lay out Grandchildren
+      ngc = len grandChildren
+      yi = plus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
+      yAdjust = times Y_ADJUST_INCREMENT (divide ngc 2)
+      yi = minus yi yAdjust
+
+      if ngc
+         xi = X_MIN
+         for grandChild in grandChildren
+            position = nil
+            for pos in grandChild.positions
+               if eq pos.user user
+                  position = pos
+                  break
+            if not position
+               position = model.Position
+               position.user = user
+
+            position.x = xi
+            position.y = yi         
+            position.topic = grandChild
+
+            offset = times
+                        min (len grandChild.title) MAX_TITLE_CHARS_DISPLAYED
+                        CHAR_WIDTH
+
+            xi = plus xi offset
+            yi = plus yi Y_ADJUST_INCREMENT   
+
+
+         // Collect Great Grandchildren
+         greatGrandChildren = []model.Topic
+         for grandchild in grandChildren
+            for ggcLink in grandchild.childLinks
+               greatGrandChildren += ggcLink.child
+
+         // Lay out Great Grandpchildren
+         nggc = len greatGrandChildren
+         yi = plus yi 
+                   plus MIN_Y_SEPARATION (times 2 Y_SEP_GROWTH)
+         yAdjust = times Y_ADJUST_INCREMENT (divide nggc 2)
+         yi = minus yi yAdjust
+
+         if nggc
+            xi = X_MIN
+            for greatGrandChild in greatGrandChildren
+               position = nil
+               for pos in greatGrandChild.positions
+                  if eq pos.user user
+                     position = pos
+                     break
+               if not position
+                  position = model.Position
+                  position.user = user
+
+               position.x = xi
+               position.y = yi         
+               position.topic = greatGrandChild
+
+               offset = times
+                           min (len greatGrandChild.title) MAX_TITLE_CHARS_DISPLAYED
+                           CHAR_WIDTH
+
+               xi = plus xi offset
+               yi = plus yi Y_ADJUST_INCREMENT   
+
+
+max a Int b Int > Int
+"""
+ Returns the maximum of the two numbers
+"""
+   if gt b a
+      => b
+   => a
+
+
+min a Int b Int > Int
+"""
+ Returns the minimum of the two numbers
+"""
+   if lt b a
+      => b
+   => a
+
+
+ancestorsWidth topic model.Topic > Int
+"""
+ Return a width based on an estimate of the width needed to display the titles of 
+ parents, grandparents, and great grandparents of the topic.
+"""
+   n1 = 0
+   n2 = 0
+   n3 = 0
+   for parentLink in topic.parentLinks
+      parent = parentLink.parent
+      n1 = plus 
+              n1
+              times 
+                 min (len parent.title) MAX_TITLE_CHARS_DISPLAYED
+                 CHAR_WIDTH
+      for gpLink in parent.parentLinks
+         grandParent = gpLink.parent
+         n2 = plus 
+                 n2
+                 times 
+                    min (len grandParent.title) MAX_TITLE_CHARS_DISPLAYED
+                    CHAR_WIDTH
+
+         for ggpLink in grandParent.parentLinks
+            ggParent = ggpLink.parent
+            n3 = plus 
+                    n3
+                    times 
+                       min (len ggParent.title) MAX_TITLE_CHARS_DISPLAYED
+                       CHAR_WIDTH
+   => max (max n3 n2) n1
+   
+
+descendantsWidth topic model.Topic > Int
+"""
+ Return a width based on an estimate of the width needed to display the titles of 
+ children, grandchildren, and great grandchildren of the topic.
+"""
+   n1 = 0
+   n2 = 0
+   n3 = 0
+   for childLink in topic.childLinks
+      child = childLink.child
+      n1 = plus 
+              n1
+              times 
+                 min (len child.title) MAX_TITLE_CHARS_DISPLAYED
+                 CHAR_WIDTH
+      for gpLink in child.childLinks
+         grandChild = gpLink.child
+         n2 = plus 
+                 n2
+                 times 
+                    min (len grandChild.title) MAX_TITLE_CHARS_DISPLAYED
+                    CHAR_WIDTH
+
+         for ggpLink in grandChild.childLinks
+            ggChild = ggpLink.child
+            n3 = plus 
+                    n3
+                    times 
+                       min (len ggChild.title) MAX_TITLE_CHARS_DISPLAYED
+                       CHAR_WIDTH
+   => max (max n3 n2) n1 
+
+
+
