@@ -34,14 +34,20 @@ urlSanitize s String > String
  Returns a version of the string made safe to be a nice looking URL path component.
  TODO: This is currently lame.
 """
-   => replace s " " "-"
+   => replace 
+         replace s " " "-"
+         "."
+         "~"
 
 
 unsanitize s String > String
 """
  Inverse of urlSanitize.
 """
-   => replace s "-" " "
+   => replace 
+         replace s "~" "."
+         "-" 
+         " "
 
 
 ontologyNameFormat s String > String

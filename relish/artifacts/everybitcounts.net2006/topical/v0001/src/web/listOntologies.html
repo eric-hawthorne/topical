@@ -8,10 +8,10 @@
 <body>
 <h1>Topical Ontologies</h1>
 <table>	    
-{{range .}} 
+{{range .ontologies}} 
 	<tr>
 		<td>
-		{{.name}}	
+		<a href="{{.urlPathComponent}}?tok={{.tok}}">{{.name}}</a>	
 		</td>
 		<td>
 		{{.description}}	

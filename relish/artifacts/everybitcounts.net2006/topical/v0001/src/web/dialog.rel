@@ -41,14 +41,17 @@ index
       }String > Any
 
 
-listOntologies username String > String List
+listOntologies username String tok String > String Any
 """
  Handles a request for the root (i.e. empty path) url on the server and port.
  Should yield a list of ontologies.
 """
    user = summon username 
    => "listOntologies.html"
-      user.ontologies
+      {
+         "ontologies" => user.ontologies
+         "tok"        => tok
+      }String > Any
 
 
 // icon > String String
@@ -90,7 +93,7 @@ default
 
    if eq (len args) 1 
       => "REDIRECT"
-         cat "/listOntologies/" username
+         cat "/listOntologies/" username "?tok=" tok
 
    ontologyUrlPath = cat "/" username "/" args[1]
 
@@ -98,7 +101,7 @@ default
       if eq (len args) 2
          ontology = summon ontologyUrlPath
          => "REDIRECT"
-            cat ontologyUrlPath "/" ontology.root.urlPathComponent
+            cat ontologyUrlPath "/" ontology.root.urlPathComponent "?tok=" tok
       else            
          topicUrlPathComponent = args[2]
          topicUrlPath = cat ontologyUrlPath "/" topicUrlPathComponent
@@ -115,7 +118,7 @@ default
                              "Ok"       
                              ontologyUrlPath
                => "REDIRECT"
-                  topicUrlPath
+                  cat topicUrlPath "?tok=" tok
  
             ensureActiveParent topic
 
@@ -137,18 +140,18 @@ default
          else
             => errPage fill "Error: Unknown topic '%s'" topicUrlPath
                        "Ok"       
-                       ontologyUrlPath
+                       cat ontologyUrlPath "?tok=" tok
    else
       if eq (len args) 2
          => "REDIRECT"
-            cat "/create" ontologyUrlPath
+            cat "/create" ontologyUrlPath "?tok=" tok
       else
          => errPage fill "Error: Unknown ontology '%s'" ontologyUrlPath
                     "Ok"       
-                    cat "/" username
+                    cat "/" username "?tok=" tok
 
 
-create username String ontologyUrlPath String > String Any
+create username String ontologyUrlPath String tok String > String Any
 """
  Confirms that the user wishes to create a new ontology with the given name.
  Also verifies, again, that such an ontology does not already exist.
@@ -158,10 +161,11 @@ create username String ontologyUrlPath String > String Any
       {
          "urlPath" => ontologyUrlPath
          "name"    => ontologyNameFormat ontologyUrlPath
+         "tok"     => tok
       }String > String
 
 
-createAction ontologyUrlPath String rootTopicTitle String action String > String Any
+createAction ontologyUrlPath String rootTopicTitle String action String tok String > String Any
 """
  Actually creates a new ontology, after verifying that the ontology name does not already exist.
 """
@@ -170,12 +174,12 @@ createAction ontologyUrlPath String rootTopicTitle String action String > String
 
    if eq action "Cancel"
       => "REDIRECT"
-         cat "/" username
+         cat "/" username "?tok=" tok
 
    if exists ontologyUrlPath
       => errPage fill "Error: Ontology '%s' already exists." ontologyUrlPath
                  "Ok"       
-                 cat "/" username
+                 cat "/" username "?tok=" tok
 
    user = summon username
 
@@ -207,7 +211,7 @@ createAction ontologyUrlPath String rootTopicTitle String action String > String
    dub topic topicUrlPath
 
    => "REDIRECT"
-      topicUrlPath
+      cat topicUrlPath "?tok=" tok
 
 
 addParent topic String tok String > String Any
@@ -276,7 +280,7 @@ linkNewTopicAction linkType String topic String title String tok String > String
    if not title
       => errPage "Error: New topic must be given a title." 
                  "Ok"       
-                 topic
+                 cat topic "?tok=" tok
 
    fromTopic = summon topic
    fromLevel = fromTopic.level
@@ -299,7 +303,7 @@ linkNewTopicAction linkType String topic String title String tok String > String
    if exists topicUrlPath
       => errPage fill "Error: Topic '%s' already exists." title
                  "Ok"       
-                 topic
+                 cat topic "?tok=" tok
 
    dub newTopic topicUrlPath
 
@@ -338,7 +342,7 @@ topicSearch next String rel String topic String key String tok String > String A
    if lt (len key) 2
       => errPage "Please specify a longer keyword to search for topics."
                  "Ok"       
-                 topic
+                 cat topic "?tok=" tok
    print "got to 1"
    topics1 = []model.Topic cat "title like '%" key "%' order by title"
    print "got to 2"
@@ -359,7 +363,7 @@ topicSearch next String rel String topic String key String tok String > String A
    if not topics1
       => errPage "No topics match your search key."
                  "Ok"  
-                 topic    
+                 cat topic "?tok=" tok    
    => "chooseTopic.html"
       {
          "topics" => topics1
@@ -407,7 +411,7 @@ linkExisting topic String chosen String rel String tok String > String Any
       if eq chosenTopic fromTopic
          => errPage "Cannot choose self as a sibling."
                     "Ok"  
-                    topic
+                    cat topic "?tok=" tok
       assertParentChild parent chosenTopic 
       chosenTopic.activeParent = parent  
       possibleNewLevel = plus 1 parent.level
@@ -450,3 +454,64 @@ saveAndRenameTopicAction topic String content String newTitle String tok String 
       cat editedTopicUrlPath "?tok=" tok
 
 
+topicDelete topic String tok String > String Any
+"""
+ Display a dialog seeking confirmation of deleting a topic.
+"""
+   topicToDelete = summon topic
+   => "deleteTopic.html"
+      {
+         "topic" => topicToDelete 
+         "tok"   => tok
+      }String > Any
+
+
+topicDeleteAction topic String tok String action String > String String
+"""
+ Actually delete a topic, unless cancelled, in which case redirect to display the topic.
+ If deletes the topic, redirects to display the root topic of the ontology.
+"""
+   if eq action "Cancel"
+      => "REDIRECT"
+         cat topic "?tok=" tok
+
+   topicToDelete = summon topic
+   ontology = topicToDelete.ontology
+   extricate topicToDelete
+   delete topicToDelete
+   => "REDIRECT"
+      cat ontology.urlPathComponent "?tok=" tok
+   
+
+editChildren topic String tok String > String Any
+"""
+ Re-order children in the list of children.
+ Or remove a child.
+"""
+   t = summon topic
+   => "editChildren.html"
+      {
+         "topic" => t
+         "tok"   => tok
+      }String > Any
+
+
+
+editChildrenAction topic String ordinal Int tok String action String > String Any
+"""
+ Move a child up or down in the child list, or remove it as a child.
+ Redirect to the edit children page. 
+"""
+   tpc = summon topic
+   if eq action " ^ " 
+      swap tpc.childLinks ordinal (minus ordinal 1)
+           
+   elif eq action " v " 
+      swap tpc.childLinks ordinal (plus ordinal 1)  
+   else  // "-x-"
+      childLink = tpc.childLinks[ordinal]
+      tpc.childLinks -= childLink
+      childLink.child.parentLinks -= childLink
+
+   => "REDIRECT"
+      cat "editChildren?topic=" topic "&tok=" tok

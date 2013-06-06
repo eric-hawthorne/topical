@@ -1,0 +1,36 @@
+<html>
+<head>
+  <title>Delete Topic</title>
+	
+ <link rel="stylesheet" type="text/css" id="stylesheet"
+       href="/styles/default.css" />	
+</head>
+<body>	
+<h1>Delete Topic</h1>
+{{$topic := .topic}}
+<p>
+	Confirm that you want to delete the topic:<br/>
+	<b>{{$topic.title}}</b>
+</p>
+<p>
+	<em>This deletion will be permanent and cannot be undone !</em>
+</p>
+<form action="topicDeleteAction" method="post">
+<input type="hidden" name="tok" value="{{.tok}}" />
+<input type="hidden" name="topic" value="{{urlPath $topic}}" />
+<table>	    	
+	<tr>
+		<td>
+	    <input type="submit" name="action" value="Cancel" />						
+		</td>
+		<td>
+	    &nbsp;
+		</td>
+		<td>
+	    <input type="submit" name="action" value="Yes. Delete it !" />			
+		</td>		
+	</tr>	
+</table>
+</body>
+</form>
+</html>

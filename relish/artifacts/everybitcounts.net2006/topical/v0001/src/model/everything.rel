@@ -71,6 +71,9 @@ urlPath topic Topic > String
    => cat topic.ontology.urlPathComponent "/" topic.urlPathComponent
 
 
+
+
+
 Link
 """
  A link between two topics.
@@ -96,10 +99,10 @@ initParentChild pc ParentChild > ParentChild
    => pc
 
 
-Topic 1 child -- parentLinks 0 N ParentChild
+Topic 1 child -- parentLinks 0 N [] ParentChild
 
 
-Topic 1 parent -- childLinks 0 N ParentChild
+Topic 1 parent -- childLinks 0 N [] ParentChild
 
 
 Related <: Link
@@ -116,10 +119,10 @@ initRelated r Related > Related
    => r
 
 
-Topic 1 from -- toLinks 0 N Related
+Topic 1 from -- toLinks 0 N [] Related
 
 
-Topic 1 to -- fromLinks 0 N Related
+Topic 1 to -- fromLinks 0 N [] Related
 
 
 isParentChild p Topic c Topic > Bool 
@@ -152,8 +155,6 @@ goesTo t1 Topic t2 Topic > Bool
 
 
 
-
-
 assertParentChild p Topic c Topic > err String
 """
  Check if the topics are already related directly in a
@@ -179,6 +180,10 @@ assertParentChild p Topic c Topic > err String
       =>
 
    pc = ParentChild
+   // np = plus (len c.parentLinks) 1
+   // nc = plus (len p.childLinks) 1
+   // pc.forwardOrdinal = nc
+   // pc.backwardOrdinal = np
    c.parentLinks += pc
    p.childLinks += pc
 
@@ -195,6 +200,10 @@ assertRelated from Topic to Topic > err String
       =>
    
    r = Related
+   // nf = plus (len to.fromLinks) 1
+   // nt = plus (len from.toLinks) 1
+   // r.forwardOrdinal = nt
+   // r.backwardOrdinal = nf
    from.toLinks += r
    to.fromLinks += r
 
@@ -247,6 +256,40 @@ ensureActiveParent topic Topic
       if gt (len parent.childLinks) 1
          topic.activeParent = parent
          break
+
+
+
+extricate topic Topic
+"""
+ Remove all relations involving the topic.
+ Deletes the link objects.
+
+ TODO Use asList here to aviod iterator inconsistencies !!!
+"""
+   links = []Link
+
+   for parentLink in topic.parentLinks
+      parentLink.parent = nil
+      links += parentLink
+      topic.parentLinks -= parentLink
+
+   for childLink in topic.childLinks
+      childLink.child = nil
+      links += childLink
+      topic.childLinks -= childLink
+
+   for toLink in topic.toLinks
+      toLink.to = nil
+      links += toLink
+      topic.toLinks -= toLink
+
+   for fromLink in topic.fromLinks
+      fromLink.from = nil
+      links += fromLink
+      topic.fromLinks -= fromLink
+
+   for link in links
+      delete link
 
 
 Link 0 1 -- 0 N Position
