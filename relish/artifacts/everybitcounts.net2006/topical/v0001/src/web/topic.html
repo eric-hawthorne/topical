@@ -249,11 +249,20 @@
 				<td>
 			   <input type="button" id="editorButton" value="edit" onclick="ToggleEditor()" title="Make topic editable (click on text to edit)"/>
 		       </td>
-	           {{if $topic.level}}
 		       <td>
-			   &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp; 
-			   &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp; 			
+			 &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; &nbsp;
+			   </td>
+			  <td>
+			  <form action="/graph" method="post">
+				<input type="hidden" name="topic" value="{{urlPath $topic}}" />	
+	            <input type="hidden" name="tok" value="{{$tok}}" />				
+			    <input type="submit" value=" o-O-o " title="Display topic association graph" />	
+			  </form>			
 		      </td>
+		       <td>
+			 &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; &nbsp;
+			   </td>		
+	           {{if $topic.level}}		
 		      <td>
 			  <form action="/topicDelete" method="post">
 				<input type="hidden" name="topic" value="{{urlPath $topic}}" />	
@@ -264,6 +273,25 @@
 		      {{end}}
 			 </tr>	
 			</table>
+			{{else}}
+		       <table>			
+			   <tr>
+				<td>
+			  &nbsp;
+		       </td>
+		       <td>
+			   &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp; 
+			   &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp; 
+			  <form action="/graph" method="post">
+				<input type="hidden" name="topic" value="{{urlPath $topic}}" />	
+	            <input type="hidden" name="tok" value="{{$tok}}" />				
+			    <input type="submit" value=" * " title="Display topic association graph" />	
+			  </form>			
+		      <td>
+			  &nbsp;	
+			  </td>
+			 </tr>	
+			</table>			
 			{{end}}
 			</p> 		
 		</div>	

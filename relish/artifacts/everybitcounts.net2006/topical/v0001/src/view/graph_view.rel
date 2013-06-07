@@ -3,7 +3,7 @@ artifact topical
 package  view
 
 """
- star_view.rel
+ graph_view.rel
 
  Calculation of positioning of topics in a star-shaped graph view centred around the selected topic.
 """
@@ -19,6 +19,7 @@ Y_SEP_GROWTH = 25
 CHAR_WIDTH = 10
 MAX_TITLE_CHARS_DISPLAYED = 40
 X_MIN = 10
+Y_MIN = 50
 Y_ADJUST_INCREMENT = 12
 
 
@@ -26,18 +27,31 @@ Y_ADJUST_INCREMENT = 12
 setGraphPositions 
    topic model.Topic 
    user model.User
+>
+   width Int
+   height Int
 """
  Computes positions for topic nodes in a node-and-edge topic graph centred on 
  the specified topic.
  The positions are represented as position objects related to the user and each topic.
+ Returns the required width and height of the canvas for the graph.
 """ 
    wa = ancestorsWidth topic
    wd = descendantsWidth topic
    width = plus
               max wa wd
               times 2 X_MIN
-   x = divide width 2
-   y = divide height 2 
+
+   height = plus 
+               times 2 Y_MIN
+               times 
+                  2
+                  plus 
+                     times MIN_Y_SEPARATION 3
+                     times Y_SEP_GROWTH 3
+                       
+   x = div width 3  // A little to the left of centre.
+   y = div height 2 
 
    position = nil
    for pos in topic.positions
@@ -56,7 +70,7 @@ setGraphPositions
    // Lay out Parents
    np = len topic.parentLinks
    yi = minus y MIN_Y_SEPARATION 
-   yAdjust = times Y_ADJUST_INCREMENT (divide np 2)
+   yAdjust = times Y_ADJUST_INCREMENT (div np 2)
    yi = minus yi yAdjust
 
    if np
@@ -93,7 +107,7 @@ setGraphPositions
       // Lay out Grandparents
       ngp = len grandParents
       yi = minus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
-      yAdjust = times Y_ADJUST_INCREMENT (divide ngp 2)
+      yAdjust = times Y_ADJUST_INCREMENT (div ngp 2)
       yi = minus yi yAdjust
 
       if ngp
@@ -130,7 +144,7 @@ setGraphPositions
          nggp = len greatGrandParents
          yi = minus yi 
                     plus MIN_Y_SEPARATION (times 2 Y_SEP_GROWTH)
-         yAdjust = times Y_ADJUST_INCREMENT (divide nggp 2)
+         yAdjust = times Y_ADJUST_INCREMENT (div nggp 2)
          yi = minus yi yAdjust
 
          if nggp
@@ -160,7 +174,7 @@ setGraphPositions
    // Lay out Children
    nc = len topic.childLinks
    yi = plus y MIN_Y_SEPARATION 
-   yAdjust = times Y_ADJUST_INCREMENT (divide nc 2)
+   yAdjust = times Y_ADJUST_INCREMENT (div nc 2)
    yi = minus yi yAdjust
 
    if nc
@@ -197,7 +211,7 @@ setGraphPositions
       // Lay out Grandchildren
       ngc = len grandChildren
       yi = plus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
-      yAdjust = times Y_ADJUST_INCREMENT (divide ngc 2)
+      yAdjust = times Y_ADJUST_INCREMENT (div ngc 2)
       yi = minus yi yAdjust
 
       if ngc
@@ -234,7 +248,7 @@ setGraphPositions
          nggc = len greatGrandChildren
          yi = plus yi 
                    plus MIN_Y_SEPARATION (times 2 Y_SEP_GROWTH)
-         yAdjust = times Y_ADJUST_INCREMENT (divide nggc 2)
+         yAdjust = times Y_ADJUST_INCREMENT (div nggc 2)
          yi = minus yi yAdjust
 
          if nggc

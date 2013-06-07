@@ -225,6 +225,27 @@ grandParents topic Topic
             topics += grandParent
 
 
+greatGrandParents topic Topic 
+> 
+   topics [] Topic
+"""
+ Returns the set of great-grandparents of the topic.
+ Note: Should make this an ordered set.
+"""
+   topics = []Topic
+
+   for parentLink in topic.parentLinks
+      parent = parentLink.parent
+      for grandParentLink in parent.parentLinks
+         grandParent = grandParentLink.parent
+         if not contains topics grandParent
+            topics += grandParent
+            for ggpLink in grandParent.parentLinks
+               greatGrandParent = ggpLink.parent
+               if not contains topics greatGrandParent
+                  topics += greatGrandParent
+
+
 grandChildren topic Topic 
 > 
    topics [] Topic
@@ -240,6 +261,25 @@ grandChildren topic Topic
          grandChild = grandChildLink.child
          if not contains topics grandChild
             topics += grandChild
+
+
+greatGrandChildren topic Topic 
+> 
+   topics [] Topic
+"""
+ Returns the set of great-grandchildren of the topic.
+ Note: Should make this an ordered set.
+"""
+   topics = []Topic
+
+   for childLink in topic.childLinks
+      child = childLink.child
+      for grandChildLink in child.childLinks
+         grandChild = grandChildLink.child
+         for ggcLink in grandChild.childLinks
+            greatGrandChild = ggcLink.child
+            if not contains topics greatGrandChild
+               topics += greatGrandChild
 
 
 ensureActiveParent topic Topic
@@ -306,4 +346,15 @@ Position
    x Int
    y Int
    user User
+
+
+position topic Topic user User > Position
+"""
+ The position of the topic for the user's graph view.
+"""
+   for pos in topic.positions
+      if eq pos.user user
+         => pos 
+   => nil
+
 

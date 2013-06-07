@@ -515,3 +515,31 @@ editChildrenAction topic String ordinal Int tok String action String > String An
 
    => "REDIRECT"
       cat "editChildren?topic=" topic "&tok=" tok
+
+
+
+graph topic String tok String > String Any
+"""
+ Display a topic association graph centred on the current topic.
+"""
+   tpc = summon topic
+
+   visit err = ensureHavePermission tok "view" tpc.ontology 
+
+   if err
+      => "REDIRECT"
+         cat "/?next=" topic "&tok=" visit.token
+
+   // compute the positions of the topic for this user
+   width height = setGraphPositions tpc visit.user
+
+   => "graph.html"
+      {
+         "topic"  => tpc
+         "tok"    => tok
+         "user"   => visit.user
+         "width"  => width
+         "height" => height
+      }String > Any
+
+

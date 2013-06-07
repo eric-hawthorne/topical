@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  {{$topic := .topic}}
+  {{$tok := .tok}}	
+  {{$user := .user}}
+  <title>{{$topic.title}}</title>
+
+ <link rel="stylesheet" type="text/css" id="stylesheet"
+       href="/styles/default.css" />
+    <meta charset="utf-8" />
+<!-- http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js -->
+	<script src='http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js' type='text/javascript'></script>
+<!-- http://ckeditor.com/apps/ckeditor/4.1.1/ckeditor.js -->	
+	<script type='text/javascript' src='http://ckeditor.com/apps/ckeditor/4.1.1/ckeditor.js'></script>
+	
+	<script type='text/javascript'>
+	// <![CDATA[
+
+	
+	// ]]>	
+	</script>
+
+</head>
+<body>
+
+<table id="top">
+  <tr>
+	 <td id="topleft">
+	    <div id="grandparents">
+		   {{range grandParents $topic}}
+      		 <a href="{{.urlPathComponent}}?tok={{$tok}}">
+			       {{with .title}} 
+			          {{with noBreak .}}{{htm .}}{{end}}
+			       {{end}} 
+			       {{$pos := position . $user}}
+			       {{$pos.x}} {{$pos.y}}
+		       </a> &nbsp;
+	      {{end}}		
+	    </div> 
+	    <div>
+        {{if $topic.level}}  
+	       {{$topicPath := urlPath $topic}}
+	       {{$activeParent := $topic.activeParent}}	
+	       {{$parentLinks := $topic.parentLinks}}
+	       {{$numParents := length $parentLinks}}
+	 	   {{range $topic.parentLinks}}
+
+	          {{with .parent}}
+		          <a href="{{.urlPathComponent}}?tok={{$tok}}">
+			       {{with .title}} 
+			          {{with noBreak .}}{{htm .}}{{end}}
+			       {{end}} 
+		          </a> 
+		          &nbsp; &nbsp;
+			       {{$pos := position . $user}}
+			       {{$pos.x}} {{$pos.y}}
+	          {{end}}
+           {{end}}	
+	    {{end}}
+
+	    </div>	
+
+<div>
+	{{$topic.title}}
+	{{$pos := position $topic $user}}
+    {{$pos.x}} {{$pos.y}}
+</div>
+<div>	
+	   {{range $topic.childLinks}}
+       <a href="{{.child.urlPathComponent}}?tok={{$tok}}">
+	       {{with .child.title}} 
+	          {{with noBreak .}}{{htm .}}{{end}}
+	       {{end}} 
+       </a> &nbsp;
+       {{with .child}}
+       {{$pos := position . $user}}
+       {{$pos.x}} {{$pos.y}}
+      {{end}}
+
+    {{end}}	
+</div> 
+<div>
+	   {{range grandChildren $topic}}
+     		 <a href="{{.urlPathComponent}}?tok={{$tok}}">
+		       {{with .title}} 
+		          {{with noBreak .}}{{htm .}}{{end}}
+		       {{end}} 
+	       </a> &nbsp;
+	       {{$pos := position . $user}}
+	       {{$pos.x}} {{$pos.y}}
+      {{end}}
+</div>
+<div>
+	   {{range greatGrandChildren $topic}}
+     		 <a href="{{.urlPathComponent}}?tok={{$tok}}">
+		       {{with .title}} 
+		          {{with noBreak .}}{{htm .}}{{end}}
+		       {{end}} 
+	       </a> &nbsp;
+	       {{$pos := position . $user}}
+	       {{$pos.x}} {{$pos.y}}
+      {{end}}
+</div>
+
+</body>
+</html>
