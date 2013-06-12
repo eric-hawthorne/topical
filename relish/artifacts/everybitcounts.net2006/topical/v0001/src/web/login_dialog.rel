@@ -61,7 +61,7 @@ loginAction
 
    user = summon username
    if neq user.password pwHash
-      print pw pwHash user.password
+      // print pw pwHash user.password
       => errPage "User name or password incorrect."
                  "Ok"       
                  backUrl  

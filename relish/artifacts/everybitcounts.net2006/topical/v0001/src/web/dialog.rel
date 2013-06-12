@@ -343,23 +343,23 @@ topicSearch next String rel String topic String key String tok String > String A
       => errPage "Please specify a longer keyword to search for topics."
                  "Ok"       
                  cat topic "?tok=" tok
-   print "got to 1"
+   // print "got to 1"
    topics1 = []model.Topic cat "title like '%" key "%' order by title"
-   print "got to 2"
+   // print "got to 2"
    if lt (len topics1) 30
-      print "got to 3"
+      // print "got to 3"
       topics2 = []model.Topic cat "content like '%" key "%' order by title"
-      print "got to 4"
+      // print "got to 4"
       topics3 = []model.Topic
       for topic2 in topics2
-         print "got to 5"
+         // print "got to 5"
          if not contains topics1 topic2 
             topics3 += topic2
-         print "got to 6"
+         // print "got to 6"
       for topic3 in topics3
-         print "got to 7"
+         // print "got to 7"
          topics1 += topic3
-      print "got to 8"
+      // print "got to 8"
    if not topics1
       => errPage "No topics match your search key."
                  "Ok"  
