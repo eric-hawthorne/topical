@@ -16,9 +16,9 @@ import
 
 MIN_Y_SEPARATION = 100
 Y_SEP_GROWTH = 25
-CHAR_WIDTH = 10
+CHAR_WIDTH = 14
 MAX_TITLE_CHARS_DISPLAYED = 40
-X_MIN = 10
+X_MIN = 50
 Y_MIN = 50
 Y_ADJUST_INCREMENT = 12
 
@@ -66,7 +66,6 @@ setGraphPositions
    position.y = y
    position.topic = topic
 
-
    // Lay out Parents
    np = len topic.parentLinks
    yi = minus y MIN_Y_SEPARATION 
@@ -75,6 +74,7 @@ setGraphPositions
 
    if np
       xi = X_MIN
+      isLeftmost = true
       for parentLink in topic.parentLinks
          parent = parentLink.parent
          position = nil
@@ -86,13 +86,18 @@ setGraphPositions
             position = model.Position
             position.user = user
 
-         position.x = xi
-         position.y = yi         
-         position.topic = parent
-
          offset = times
                      min (len parent.title) MAX_TITLE_CHARS_DISPLAYED
                      CHAR_WIDTH
+
+         if isLeftmost
+            xi = plus xi (div offset 2)
+            // print parent.title xi 
+            isLeftmost = false 
+
+         position.x = xi
+         position.y = yi         
+         position.topic = parent
 
          xi = plus xi offset
          yi = plus yi Y_ADJUST_INCREMENT
@@ -112,6 +117,7 @@ setGraphPositions
 
       if ngp
          xi = X_MIN
+         isLeftmost = true
          for grandParent in grandParents
             position = nil
             for pos in grandParent.positions
@@ -122,13 +128,17 @@ setGraphPositions
                position = model.Position
                position.user = user
 
-            position.x = xi
-            position.y = yi         
-            position.topic = grandParent
-
             offset = times
                         min (len grandParent.title) MAX_TITLE_CHARS_DISPLAYED
                         CHAR_WIDTH
+
+            if isLeftmost
+               xi = plus xi (div offset 2)
+               isLeftmost = false
+
+            position.x = xi
+            position.y = yi         
+            position.topic = grandParent
 
             xi = plus xi offset
             yi = plus yi Y_ADJUST_INCREMENT   
@@ -149,6 +159,7 @@ setGraphPositions
 
          if nggp
             xi = X_MIN
+            isLeftmost = true
             for greatGrandParent in greatGrandParents
                position = nil
                for pos in greatGrandParent.positions
@@ -159,13 +170,17 @@ setGraphPositions
                   position = model.Position
                   position.user = user
 
-               position.x = xi
-               position.y = yi         
-               position.topic = greatGrandParent
-
                offset = times
                            min (len greatGrandParent.title) MAX_TITLE_CHARS_DISPLAYED
                            CHAR_WIDTH
+
+               if isLeftmost
+                  xi = plus xi (div offset 2)
+                  isLeftmost = false
+
+               position.x = xi
+               position.y = yi         
+               position.topic = greatGrandParent
 
                xi = plus xi offset
                yi = plus yi Y_ADJUST_INCREMENT   
@@ -179,6 +194,7 @@ setGraphPositions
 
    if nc
       xi = X_MIN
+      isLeftmost = true
       for childLink in topic.childLinks
          child = childLink.child
          position = nil
@@ -190,13 +206,18 @@ setGraphPositions
             position = model.Position
             position.user = user
 
-         position.x = xi
-         position.y = yi         
-         position.topic = child
-
          offset = times
                      min (len child.title) MAX_TITLE_CHARS_DISPLAYED
                      CHAR_WIDTH
+
+         if isLeftmost
+            xi = plus xi (div offset 2)      
+            // print child.title xi       
+            isLeftmost = false
+
+         position.x = xi
+         position.y = yi         
+         position.topic = child
 
          xi = plus xi offset
          yi = plus yi Y_ADJUST_INCREMENT
@@ -216,6 +237,7 @@ setGraphPositions
 
       if ngc
          xi = X_MIN
+         isLeftmost = true
          for grandChild in grandChildren
             position = nil
             for pos in grandChild.positions
@@ -226,13 +248,17 @@ setGraphPositions
                position = model.Position
                position.user = user
 
-            position.x = xi
-            position.y = yi         
-            position.topic = grandChild
-
             offset = times
                         min (len grandChild.title) MAX_TITLE_CHARS_DISPLAYED
                         CHAR_WIDTH
+
+            if isLeftmost
+               xi = plus xi (div offset 2)             
+               isLeftmost = false
+
+            position.x = xi
+            position.y = yi         
+            position.topic = grandChild
 
             xi = plus xi offset
             yi = plus yi Y_ADJUST_INCREMENT   
@@ -253,6 +279,7 @@ setGraphPositions
 
          if nggc
             xi = X_MIN
+            isLeftmost = true
             for greatGrandChild in greatGrandChildren
                position = nil
                for pos in greatGrandChild.positions
@@ -263,13 +290,17 @@ setGraphPositions
                   position = model.Position
                   position.user = user
 
-               position.x = xi
-               position.y = yi         
-               position.topic = greatGrandChild
-
                offset = times
                            min (len greatGrandChild.title) MAX_TITLE_CHARS_DISPLAYED
                            CHAR_WIDTH
+
+               if isLeftmost
+                  xi = plus xi (div offset 2)             
+                  isLeftmost = false
+
+               position.x = xi
+               position.y = yi         
+               position.topic = greatGrandChild
 
                xi = plus xi offset
                yi = plus yi Y_ADJUST_INCREMENT   
