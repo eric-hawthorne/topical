@@ -7,6 +7,12 @@ package  model
 
  The data model of the note taking domain.
  May separate this out into separate files.
+ Note that this data model is not typical of a relish data model.
+ That's because this model, in a jump in the "meta" direction, represents
+ relations (links) between topics as first-class objects with additional properties.
+ Usually, relations in relish do not involve the creation of additional
+ data types just for the representation of the relation. Relations are language-builtin
+ constructs in relish.
 """
 
 
