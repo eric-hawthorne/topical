@@ -68,15 +68,17 @@ setGraphPositions
    position.y = y
 
    focusPosition = position  // Save the position of the focus topic
+   focusTopicWidth = times (len topic.title) CHAR_WIDTH
 
 
    // Lay out related tos
 
    xMaxUsed = X_MIN  // These will define how much the focus topic has to be moved
-   yMaxUsed = y  // to make remove for related topics
+   yMaxUsed = Y_MIN  // to make remove for related topics
 
    nt = len topic.toLinks
    yi = plus (times 3 CHAR_HEIGHT) (minus y MIN_Y_SEPARATION)
+   yFirstRelated = yi
 
    if nt
       xi = X_MIN
@@ -98,7 +100,7 @@ setGraphPositions
                      CHAR_WIDTH
 
          if isLeftmost
-            xi = plus xi (div offset 2)
+            xi = plus xi (div offset 3)
             // print related.title xi 
             isLeftmost = false 
 
@@ -154,6 +156,34 @@ setGraphPositions
    if lt focusPosition.x xMaxUsed
       focusPosition.x = xMaxUsed
       x = xMaxUsed
+      // print "oldWidth" width
+      newWidth = plus xMaxUsed focusTopicWidth
+      if lt width newWidth
+         width = newWidth
+      // print x 
+      // print width
+   
+   yRelatedOffset = 0                  
+   yChildren = plus y MIN_Y_SEPARATION
+   if lt yMaxUsed (minus yChildren 20)
+      yRelatedOffset = minus (minus yChildren 20) yMaxUsed
+
+   if gt (plus yRelatedOffset yFirstRelated) y
+      yRelatedOffset = minus y yFirstRelated
+
+   if gt yRelatedOffset 0
+      for toLink in topic.toLinks
+         for pos in toLink.to.positions
+            if eq pos.user user
+               pos.y = plus pos.y yRelatedOffset
+               break
+
+      for fromLink in topic.fromLinks
+         for pos in fromLink.from.positions
+            if eq pos.user user
+               pos.y = plus pos.y yRelatedOffset
+               break
+
 
    // Lay out Parents
    np = len topic.parentLinks
@@ -398,6 +428,7 @@ setGraphPositions
 
                xi = plus xi offset
                yi = plus yi Y_ADJUST_INCREMENT   
+
 
 
 max a Int b Int > Int
