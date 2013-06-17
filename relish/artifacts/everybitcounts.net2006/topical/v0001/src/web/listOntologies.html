@@ -6,12 +6,13 @@
        href="/styles/default.css" />	
 </head>
 <body>
+{{$tok := .tok}}
 <h1>Topical Ontologies</h1>
 <table>	    
 {{range .ontologies}} 
 	<tr>
 		<td>
-		<a href="{{.urlPathComponent}}?tok={{.tok}}">{{.name}}</a>	
+		<a href="{{.urlPathComponent}}?tok={{$tok}}">{{.name}}</a>	
 		</td>
 		<td>
 		{{.description}}	

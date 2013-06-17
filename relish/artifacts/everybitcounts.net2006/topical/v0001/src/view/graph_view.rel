@@ -17,6 +17,7 @@ import
 MIN_Y_SEPARATION = 100
 Y_SEP_GROWTH = 25
 CHAR_WIDTH = 14
+CHAR_HEIGHT = 14
 MAX_TITLE_CHARS_DISPLAYED = 40
 X_MIN = 50
 Y_MIN = 50
@@ -61,14 +62,103 @@ setGraphPositions
    if not position
       position = model.Position
       position.user = user
+      position.topic = topic
 
    position.x = x
    position.y = y
-   position.topic = topic
+
+   focusPosition = position  // Save the position of the focus topic
+
+
+   // Lay out related tos
+
+   xMaxUsed = X_MIN  // These will define how much the focus topic has to be moved
+   yMaxUsed = y  // to make remove for related topics
+
+   nt = len topic.toLinks
+   yi = plus (times 3 CHAR_HEIGHT) (minus y MIN_Y_SEPARATION)
+
+   if nt
+      xi = X_MIN
+      isLeftmost = true
+      for toLink in topic.toLinks
+         related = toLink.to
+         position = nil
+         for pos in related.positions
+            if eq pos.user user
+               position = pos
+               break
+         if not position
+            position = model.Position
+            position.user = user
+            position.topic = related
+
+         offset = times
+                     min (len related.title) MAX_TITLE_CHARS_DISPLAYED
+                     CHAR_WIDTH
+
+         if isLeftmost
+            xi = plus xi (div offset 2)
+            // print related.title xi 
+            isLeftmost = false 
+
+         position.x = xi
+         position.y = yi         
+
+         xMaxUsed = plus xi offset
+         yMaxUsed = plus yi CHAR_HEIGHT
+
+         xi = plus xi 50
+         yi = plus yi CHAR_HEIGHT
+
+   // Lay out related froms
+
+   nf = len topic.fromLinks
+
+   if nf
+      xi = X_MIN
+      isLeftmost = true
+      for fromLink in topic.fromLinks
+         related = fromLink.from
+         position = nil
+         for pos in related.positions
+            if eq pos.user user
+               position = pos
+               break
+         if not position
+            position = model.Position
+            position.user = user
+            position.topic = related
+
+         offset = times
+                     min (len related.title) MAX_TITLE_CHARS_DISPLAYED
+                     CHAR_WIDTH
+
+         if isLeftmost
+            xi = plus xi (div offset 2)
+            // print related.title xi 
+            isLeftmost = false 
+
+         position.x = xi
+         position.y = yi         
+
+         xMaxUsed = max xMaxUsed (plus xi offset)
+         yMaxUsed = plus yi CHAR_HEIGHT
+
+         xi = plus xi 50
+         yi = plus yi CHAR_HEIGHT
+
+   xMaxUsed = plus xMaxUsed 50
+   yMaxUsed = plus yMaxUsed 50
+
+   if lt focusPosition.x xMaxUsed
+      focusPosition.x = xMaxUsed
+      x = xMaxUsed
 
    // Lay out Parents
    np = len topic.parentLinks
    yi = minus y MIN_Y_SEPARATION 
+ 
    yAdjust = times Y_ADJUST_INCREMENT (div np 2)
    yi = minus yi yAdjust
 
@@ -85,6 +175,7 @@ setGraphPositions
          if not position
             position = model.Position
             position.user = user
+            position.topic = parent
 
          offset = times
                      min (len parent.title) MAX_TITLE_CHARS_DISPLAYED
@@ -97,7 +188,6 @@ setGraphPositions
 
          position.x = xi
          position.y = yi         
-         position.topic = parent
 
          xi = plus xi offset
          yi = plus yi Y_ADJUST_INCREMENT
@@ -127,6 +217,7 @@ setGraphPositions
             if not position
                position = model.Position
                position.user = user
+               position.topic = grandParent
 
             offset = times
                         min (len grandParent.title) MAX_TITLE_CHARS_DISPLAYED
@@ -138,7 +229,6 @@ setGraphPositions
 
             position.x = xi
             position.y = yi         
-            position.topic = grandParent
 
             xi = plus xi offset
             yi = plus yi Y_ADJUST_INCREMENT   
@@ -169,6 +259,7 @@ setGraphPositions
                if not position
                   position = model.Position
                   position.user = user
+                  position.topic = greatGrandParent
 
                offset = times
                            min (len greatGrandParent.title) MAX_TITLE_CHARS_DISPLAYED
@@ -180,7 +271,6 @@ setGraphPositions
 
                position.x = xi
                position.y = yi         
-               position.topic = greatGrandParent
 
                xi = plus xi offset
                yi = plus yi Y_ADJUST_INCREMENT   
@@ -189,6 +279,10 @@ setGraphPositions
    // Lay out Children
    nc = len topic.childLinks
    yi = plus y MIN_Y_SEPARATION 
+
+   if gt yMaxUsed yi
+      yi = yMaxUsed
+
    yAdjust = times Y_ADJUST_INCREMENT (div nc 2)
    yi = minus yi yAdjust
 
@@ -205,6 +299,7 @@ setGraphPositions
          if not position
             position = model.Position
             position.user = user
+            position.topic = child
 
          offset = times
                      min (len child.title) MAX_TITLE_CHARS_DISPLAYED
@@ -217,7 +312,6 @@ setGraphPositions
 
          position.x = xi
          position.y = yi         
-         position.topic = child
 
          xi = plus xi offset
          yi = plus yi Y_ADJUST_INCREMENT
@@ -247,6 +341,7 @@ setGraphPositions
             if not position
                position = model.Position
                position.user = user
+               position.topic = grandChild
 
             offset = times
                         min (len grandChild.title) MAX_TITLE_CHARS_DISPLAYED
@@ -258,7 +353,6 @@ setGraphPositions
 
             position.x = xi
             position.y = yi         
-            position.topic = grandChild
 
             xi = plus xi offset
             yi = plus yi Y_ADJUST_INCREMENT   
@@ -289,6 +383,7 @@ setGraphPositions
                if not position
                   position = model.Position
                   position.user = user
+                  position.topic = greatGrandChild
 
                offset = times
                            min (len greatGrandChild.title) MAX_TITLE_CHARS_DISPLAYED
@@ -300,7 +395,6 @@ setGraphPositions
 
                position.x = xi
                position.y = yi         
-               position.topic = greatGrandChild
 
                xi = plus xi offset
                yi = plus yi Y_ADJUST_INCREMENT   

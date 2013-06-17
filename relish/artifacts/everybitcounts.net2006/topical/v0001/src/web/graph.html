@@ -97,6 +97,150 @@
 	      titleLayer.add(titleArea);
 	      titleLayer.add(titleText);
 	
+	
+		  ///////////////////////////////////////////////	
+	
+		  {{range $topic.toLinks}}
+             {{$to := .to}}
+		  	 {{$pos6 := position $to $user}}
+		
+			  ///////////////////////////////////////////////	
+
+		      // since this text is inside of a defined area, we can center it using
+		      // align: 'center'
+		      titleText = new Kinetic.Text({
+		        x: {{$pos6.x}},
+		        y: {{$pos6.y}},
+		        text: '{{$to.title}}',
+		        fontSize: 14,
+		        fontFamily: 'Calibri',
+		        fill: 'black',
+		        // width: 380,
+		        padding: 3,			
+		        align: 'center'
+		      });
+
+	          titleOffset = titleText.getWidth() / 2;		
+
+		      titleArea = new Kinetic.Rect({
+		        x: {{$pos6.x}},
+		        y: {{$pos6.y}},
+		        // stroke: '#555',
+		        strokeWidth: 0,
+		        fill: '#ddd',
+		        opacity: 0.7,		
+		        width: titleText.getWidth(),
+		        height: titleText.getHeight(),
+		        shadowColor: 'black',
+		        shadowBlur: 3,
+		        shadowOffset: [3, 3],
+		        shadowOpacity: 0.2,
+		        cornerRadius: 3
+		      });
+
+		      // to align text in the middle of the screen, we can set the
+		      // shape offset to the center of the text shape after instantiating it		
+		      titleText.setOffset({
+		        x: titleOffset
+		      });	
+
+		      titleArea.setOffset({
+		        x: titleOffset
+		      });				
+
+		      //titleText.on("dblclick", function() {location.href="{{urlPath $to}}?tok={{$tok}}"});
+
+		      titleText.on("click tap", function() {location.href="/graph?topic={{urlPath $to}}&tok={{$tok}}"});
+
+		      // add the shapes to the lineLayer
+		      titleLayer.add(titleArea);
+		      titleLayer.add(titleText);
+
+			  ///////////////////////////////////////////////		
+		
+
+	
+	         line = new Kinetic.Line({		
+		         points: [{{$pos1.x}},{{$pos1.y}},{{$pos6.x}},{{$pos6.y}}],               
+		         stroke: 'green',
+		         strokeWidth: 1,
+		         lineCap: 'round',
+		         lineJoin: 'round'
+		     });  
+	         lineLayer.add(line);	
+	      {{end}}
+	
+	
+		  {{range $topic.fromLinks}}
+             {{$from := .from}}
+		  	 {{$pos7 := position $from $user}}
+		
+			  ///////////////////////////////////////////////	
+
+		      // since this text is inside of a defined area, we can center it using
+		      // align: 'center'
+		      titleText = new Kinetic.Text({
+		        x: {{$pos7.x}},
+		        y: {{$pos7.y}},
+		        text: '{{$from.title}}',
+		        fontSize: 14,
+		        fontFamily: 'Calibri',
+		        fill: 'black',
+		        // width: 380,
+		        padding: 3,			
+		        align: 'center'
+		      });
+
+	          titleOffset = titleText.getWidth() / 2;		
+
+		      titleArea = new Kinetic.Rect({
+		        x: {{$pos7.x}},
+		        y: {{$pos7.y}},
+		        // stroke: '#555',
+		        strokeWidth: 0,
+		        fill: '#ddd',
+		        opacity: 0.7,		
+		        width: titleText.getWidth(),
+		        height: titleText.getHeight(),
+		        shadowColor: 'black',
+		        shadowBlur: 3,
+		        shadowOffset: [3, 3],
+		        shadowOpacity: 0.2,
+		        cornerRadius: 3
+		      });
+
+		      // to align text in the middle of the screen, we can set the
+		      // shape offset to the center of the text shape after instantiating it		
+		      titleText.setOffset({
+		        x: titleOffset
+		      });	
+
+		      titleArea.setOffset({
+		        x: titleOffset
+		      });				
+
+		      //titleText.on("dblclick", function() {location.href="{{urlPath $from}}?tok={{$tok}}"});
+
+		      titleText.on("click tap", function() {location.href="/graph?topic={{urlPath $from}}&tok={{$tok}}"});
+
+		      // add the shapes to the lineLayer
+		      titleLayer.add(titleArea);
+		      titleLayer.add(titleText);
+
+			  ///////////////////////////////////////////////		
+		
+	         line = new Kinetic.Line({		
+		         points: [{{$pos1.x}},{{$pos1.y}},{{$pos7.x}},{{$pos7.y}}],               
+		         stroke: 'green',
+		         strokeWidth: 1,
+		         lineCap: 'round',
+		         lineJoin: 'round'
+		     });  
+	         lineLayer.add(line);	
+		  {{end}}
+	
+	
+	
 		  ///////////////////////////////////////////////	
 	
 		  {{range $topic.childLinks}}
