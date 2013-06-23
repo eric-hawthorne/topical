@@ -161,7 +161,7 @@ goesTo t1 Topic t2 Topic > Bool
 
 
 
-assertParentChild p Topic c Topic > err String
+assertParentChild p Topic c Topic linkSubtype String > err String
 """
  Check if the topics are already related directly in a
  parent child sense.
@@ -190,6 +190,7 @@ assertParentChild p Topic c Topic > err String
    // nc = plus (len p.childLinks) 1
    // pc.forwardOrdinal = nc
    // pc.backwardOrdinal = np
+   pc.subType = linkSubtype
    c.parentLinks += pc
    p.childLinks += pc
 

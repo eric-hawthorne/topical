@@ -9,6 +9,7 @@
   <h1>Topical - Choose a Topic</h1>
   {{$next := .next}}
   {{$rel := .rel}}
+ {{$linkSubtype := .linkSubtype}}
   {{$topic := .topic}}
   {{$tok := .tok}}	
   <table>
@@ -23,6 +24,7 @@
       <form action="{{$next}}" method="post">
       <input type="hidden" name="topic" value="{{$topic}}" />	
       <input type="hidden" name="rel" value="{{$rel}}" />
+      <input type="hidden" name="linkSubtype" value="{{$linkSubtype}}" />
       <input type="hidden" name="chosen" value="{{urlPath .}}" />
       <input type="hidden" name="tok" value="{{$tok}}" />
       <td rowspan="2" style="vertical-align: middle">

@@ -271,7 +271,7 @@ addSibling topic String tok String > String Any
 
 
 
-linkNewTopicAction linkType String topic String title String tok String > String Any
+linkNewTopicAction linkType String linkSubtype String topic String title String tok String > String Any
 """
  Create a new topic, and establish it in a particular type of linked relationship with
  the original topic. Then display the new topic in the topic display UI.
@@ -310,7 +310,7 @@ linkNewTopicAction linkType String topic String title String tok String > String
    // Now link to the new topic from the old one.
 
    if eq linkType "parent"
-      assertParentChild newTopic fromTopic
+      assertParentChild newTopic fromTopic linkSubtype
       newTopic.level = minus fromLevel 1
       fromTopic.activeParent = newTopic
    elif eq linkType "related-to"
@@ -320,7 +320,7 @@ linkNewTopicAction linkType String topic String title String tok String > String
       assertRelated newTopic fromTopic  // the relation is from newTopic to current topic
       newTopic.level = fromLevel
    elif eq linkType "child"
-      assertParentChild fromTopic newTopic
+      assertParentChild fromTopic newTopic linkSubtype
       newTopic.level = plus fromLevel 1
       newTopic.activeParent = fromTopic
    else  // must be a sibling
@@ -333,7 +333,7 @@ linkNewTopicAction linkType String topic String title String tok String > String
       cat topicUrlPath "?tok=" tok
 
 
-topicSearch next String rel String topic String key String tok String > String Any
+topicSearch next String rel String linkSubtype String topic String key String tok String > String Any
 """
  Displays a page containing a list of topics whose title contains the key.
  TODO extend to searching content.  
@@ -366,16 +366,17 @@ topicSearch next String rel String topic String key String tok String > String A
                  cat topic "?tok=" tok    
    => "chooseTopic.html"
       {
-         "topics" => topics1
-         "next"   => next
-         "rel"    => rel
-         "topic"  => topic 
-         "tok"    => tok
+         "topics"      => topics1
+         "next"        => next
+         "rel"         => rel
+         "linkSubtype" => linkSubtype
+         "topic"       => topic 
+         "tok"         => tok
       }String > Any         
 
 
 
-linkExisting topic String chosen String rel String tok String > String Any
+linkExisting topic String chosen String rel String linkSubtype String tok String > String Any
 """
  Link the chosen topic as a parent of the topic.
  Then return to display the original topic.
@@ -391,7 +392,7 @@ linkExisting topic String chosen String rel String tok String > String Any
    // Now link to the new topic from the old one.
 
    if eq rel "parent"
-      assertParentChild chosenTopic fromTopic
+      assertParentChild chosenTopic fromTopic linkSubtype
       fromTopic.activeParent = chosenTopic
       possibleNewLevel = plus 1 chosenTopic.level
       if lt possibleNewLevel fromTopic.level
@@ -401,7 +402,7 @@ linkExisting topic String chosen String rel String tok String > String Any
    elif eq rel "related-from"
       assertRelated chosenTopic fromTopic  // the relation is from chosenTopic to current topic
    elif eq rel "child"
-      assertParentChild fromTopic chosenTopic
+      assertParentChild fromTopic chosenTopic linkSubtype
       chosenTopic.activeParent = fromTopic
       possibleNewLevel = plus 1 fromTopic.level
       if lt possibleNewLevel chosenTopic.level
@@ -412,7 +413,7 @@ linkExisting topic String chosen String rel String tok String > String Any
          => errPage "Cannot choose self as a sibling."
                     "Ok"  
                     cat topic "?tok=" tok
-      assertParentChild parent chosenTopic 
+      assertParentChild parent chosenTopic linkSubtype
       chosenTopic.activeParent = parent  
       possibleNewLevel = plus 1 parent.level
       if lt possibleNewLevel chosenTopic.level

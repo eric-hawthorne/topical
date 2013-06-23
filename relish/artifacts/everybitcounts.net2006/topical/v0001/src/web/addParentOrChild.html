@@ -17,6 +17,15 @@
   <input type="hidden" name="topic" value="{{.url}}" />
     <input type="hidden" name="tok" value="{{.tok}}" />	
   <table>
+	  <tr>
+		<td>
+			Relationship type:
+		</td>
+		<td colspan="2">
+			<input type="radio" name="linkSubtype" value="WholePart" checked="checked" />Whole-Part<br/>
+			<input type="radio" name="linkSubtype" value="SupertypeSubtype" />SuperType-Subtype			
+		</td>
+	  </tr>	
 	<tr>
       <td>Find existing topic:</td>
       <td><input type="text" size="30" name="key" /></td>
@@ -30,6 +39,7 @@
   or... Create new topic as {{.rel}}
   <form action="linkNewTopicAction" method="post">
 	<input type="hidden" name="linkType" value="{{.rel}}" />
+
 	<input type="hidden" name="topic" value="{{.url}}" />
     <input type="hidden" name="tok" value="{{.tok}}" />		
 	<table>
@@ -39,6 +49,15 @@
 		</td>
 		<td>
 			<input type="text" size="70" name="title" id="title" />
+		</td>
+	  </tr>	
+	  <tr>
+		<td>
+			Relationship type:
+		</td>
+		<td>
+			<input type="radio" name="linkSubtype" value="WholePart" checked="checked" />Whole-Part<br/>
+			<input type="radio" name="linkSubtype" value="SupertypeSubtype" />SuperType-Subtype			
 		</td>
 	  </tr>	
 	  <tr>

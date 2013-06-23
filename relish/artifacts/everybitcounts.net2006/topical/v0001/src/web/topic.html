@@ -144,32 +144,68 @@
 	       {{$parentLinks := $topic.parentLinks}}
 	       {{$numParents := length $parentLinks}}
 	 	   {{range $topic.parentLinks}}
-
-	          {{with .parent}}
-		          <a href="{{.urlPathComponent}}?tok={{$tok}}">
-			       {{with .title}} 
-			          {{with noBreak .}}{{htm .}}{{end}}
-			       {{end}} 
-		          </a> 
-                  {{if .level}}
-                     {{if gt $numParents 1}}
-	                     {{$children := .childLinks}}
-	                     {{$numChildren := length $children}}
-	                     {{if gt $numChildren 1}}
-	                         &nbsp;
-	                         {{if eq . $activeParent}}
-	                         <span class="activeParent">\\\</span>
-	                         {{else}}
-				             <a href="{{$topicPath}}/{{.urlPathComponent}}?tok={{$tok}}" class="parentChooser">
-					          \\\
-				             </a> 
+	          {{$subtype := .subType}}
+              {{if neq $subtype "SupertypeSubtype"}}
+		          {{with .parent}}
+			          <a href="{{.urlPathComponent}}?tok={{$tok}}">
+				       {{with .title}} 
+				          {{with noBreak .}}{{htm .}}{{end}}
+				       {{end}} 
+			          </a> 
+	                  {{if .level}}
+	                     {{if gt $numParents 1}}
+		                     {{$children := .childLinks}}
+		                     {{$numChildren := length $children}}
+		                     {{if gt $numChildren 1}}
+		                         &nbsp;
+		                         {{if eq . $activeParent}}
+		                         <span class="activeParent">\\\</span>
+		                         {{else}}
+					             <a href="{{$topicPath}}/{{.urlPathComponent}}?tok={{$tok}}" class="parentChooser">
+						          \\\
+					             </a> 
+					             {{end}}
 				             {{end}}
 			             {{end}}
-		             {{end}}
+			          {{end}}
+			          &nbsp; &nbsp;
 		          {{end}}
-		          &nbsp; &nbsp;
-	          {{end}}
+		      {{end}}
            {{end}}	
+
+	 	   {{range $topic.parentLinks}}
+	          {{$subtype := .subType}}
+              {{if eq $subtype "SupertypeSubtype"}}
+	          	{{with .parent}}
+			          <a href="{{.urlPathComponent}}?tok={{$tok}}" class="subtypeAnchor">
+				       {{with .title}} 
+				          {{with noBreak .}}{{htm .}}{{end}}
+				       {{end}} 
+			          </a> 
+	                  {{if .level}}
+	                     {{if gt $numParents 1}}
+		                     {{$children := .childLinks}}
+		                     {{$numChildren := length $children}}
+		                     {{if gt $numChildren 1}}
+		                         &nbsp;
+		                         {{if eq . $activeParent}}
+		                         <span class="activeParent">\\\</span>
+		                         {{else}}
+					             <a href="{{$topicPath}}/{{.urlPathComponent}}?tok={{$tok}}" class="parentChooser">
+						          \\\
+					             </a> 
+					             {{end}}
+				             {{end}}
+			             {{end}}
+			          {{end}}
+			          &nbsp; &nbsp;
+		          {{end}}
+		      {{end}}
+           {{end}}	
+
+
+
+
 
            {{if .editable}}
 	       	   {{with $topic.level}} 
@@ -324,13 +360,26 @@
 
 <div id="children">	
 	   {{range $topic.childLinks}}
-       <a href="{{.child.urlPathComponent}}?tok={{$tok}}">
-	       {{with .child.title}} 
-	          {{with noBreak .}}{{htm .}}{{end}}
-	       {{end}} 
-       </a> &nbsp;
-
-    {{end}}	
+	
+          {{$subtype := .subType}}
+          {{if neq $subtype "SupertypeSubtype"}}	
+             <a href="{{.child.urlPathComponent}}?tok={{$tok}}">
+	          {{with .child.title}} 
+	             {{with noBreak .}}{{htm .}}{{end}}
+	          {{end}} 
+             </a> &nbsp;
+         {{end}}
+      {{end}}	
+	   {{range $topic.childLinks}}
+          {{$subtype := .subType}}
+          {{if eq $subtype "SupertypeSubtype"}}	
+             <a href="{{.child.urlPathComponent}}?tok={{$tok}}" class="subtypeAnchor">
+	          {{with .child.title}} 
+	             {{with noBreak .}}{{htm .}}{{end}}
+	          {{end}} 
+             </a> &nbsp;
+         {{end}}
+      {{end}}
 		{{if .editable}}
 		<table>
 	      <tr>

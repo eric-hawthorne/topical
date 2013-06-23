@@ -98,6 +98,10 @@ div#grandchildren {
 	background-color: #DDDDFF;		
 }
 
+a.subtypeAnchor {
+	color: #990000;
+}
+
 a.parentChooser {
 	text-decoration: none;
 	color: gray;

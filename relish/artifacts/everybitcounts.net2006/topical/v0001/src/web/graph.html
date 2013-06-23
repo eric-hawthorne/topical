@@ -44,6 +44,10 @@
           var titleArea = null;
           var titleOffset = null;
 
+          var subtypeColor = '#FF9933';
+          var merioColor = 'blue';
+          var linkColor = merioColor;
+
 		  {{$pos1 := position $topic $user}}
 		
 		  ///////////////////////////////////////////////	
@@ -303,19 +307,21 @@
 		
 		
 		
-		
-		
-		
-		
-		
-	
+             {{$subtype := .subType}}
+             {{if eq $subtype "SupertypeSubtype"}}
+                 linkColor = subtypeColor;
+	         {{else}}
+	             linkColor = merioColor;
+		     {{end}}	
+	        
 	         line = new Kinetic.Line({		
 		         points: [{{$pos1.x}},{{$pos1.y}},{{$pos2.x}},{{$pos2.y}}],               
-		         stroke: 'blue',
+		         stroke: linkColor,
 		         strokeWidth: 1,
 		         lineCap: 'round',
 		         lineJoin: 'round'
-		     });  
+		     });		
+
 	         lineLayer.add(line);		
 	
 			  {{range $child.childLinks}}
@@ -377,14 +383,29 @@
 				  ///////////////////////////////////////////////			
 			
 			
-
+	             {{$subtype := .subType}}
+	             {{if eq $subtype "SupertypeSubtype"}}
+	                 linkColor = subtypeColor;
+		         {{else}}
+		             linkColor = merioColor;
+			     {{end}}
+			
 		         line = new Kinetic.Line({		
-			         points: [{{$pos2.x}},{{$pos2.y}},{{$pos3.x}},{{$pos3.y}}],               
-			         stroke: 'blue',
+		         points: [{{$pos2.x}},{{$pos2.y}},{{$pos3.x}},{{$pos3.y}}],            
+			         stroke: linkColor,
 			         strokeWidth: 1,
 			         lineCap: 'round',
 			         lineJoin: 'round'
-			     });  
+			     });		
+		         	
+			
+			
+			
+			
+			
+			
+			
+			
 		         lineLayer.add(line);	
 		
 				  {{range $child.childLinks}}
@@ -445,9 +466,16 @@
 
 					  ///////////////////////////////////////////////				
 
+		             {{$subtype := .subType}}
+		             {{if eq $subtype "SupertypeSubtype"}}
+		                 linkColor = subtypeColor;
+			         {{else}}
+			             linkColor = merioColor;
+				     {{end}}
+				
 			         line = new Kinetic.Line({		
 				         points: [{{$pos3.x}},{{$pos3.y}},{{$pos4.x}},{{$pos4.y}}],               
-				         stroke: 'blue',
+				         stroke: linkColor,
 				         strokeWidth: 1,
 				         lineCap: 'round',
 				         lineJoin: 'round'
@@ -518,9 +546,16 @@
 
 			  ///////////////////////////////////////////////
 			
+             {{$subtype := .subType}}
+             {{if eq $subtype "SupertypeSubtype"}}
+                 linkColor = subtypeColor;
+	         {{else}}
+	             linkColor = merioColor;
+		     {{end}}			
+			
 	         line = new Kinetic.Line({		
 		         points: [{{$pos1.x}},{{$pos1.y}},{{$pos2.x}},{{$pos2.y}}],               
-		         stroke: 'blue',
+		         stroke: linkColor,
 		         strokeWidth: 1,
 		         lineCap: 'round',
 		         lineJoin: 'round'
@@ -586,9 +621,16 @@
 
 				  ///////////////////////////////////////////////			
 
+	             {{$subtype := .subType}}
+	             {{if eq $subtype "SupertypeSubtype"}}
+	                 linkColor = subtypeColor;
+		         {{else}}
+		             linkColor = merioColor;
+			     {{end}}
+			
 		         line = new Kinetic.Line({		
 			         points: [{{$pos2.x}},{{$pos2.y}},{{$pos3.x}},{{$pos3.y}}],               
-			         stroke: 'blue',
+			         stroke: linkColor,
 			         strokeWidth: 1,
 			         lineCap: 'round',
 			         lineJoin: 'round'
@@ -653,9 +695,16 @@
 
 					  ///////////////////////////////////////////////
 
+		             {{$subtype := .subType}}
+		             {{if eq $subtype "SupertypeSubtype"}}
+		                 linkColor = subtypeColor;
+			         {{else}}
+			             linkColor = merioColor;
+				     {{end}}
+				
 			         line = new Kinetic.Line({		
 				         points: [{{$pos3.x}},{{$pos3.y}},{{$pos4.x}},{{$pos4.y}}],               
-				         stroke: 'blue',
+				         stroke: linkColor,
 				         strokeWidth: 1,
 				         lineCap: 'round',
 				         lineJoin: 'round'
