@@ -341,7 +341,9 @@ setGraphPositions
             isLeftmost = false
 
          position.x = xi
-         position.y = yi         
+         position.y = yi    
+
+         yMaxUsed = yi     
 
          xi = plus xi offset
          yi = plus yi Y_ADJUST_INCREMENT
@@ -382,7 +384,9 @@ setGraphPositions
                isLeftmost = false
 
             position.x = xi
-            position.y = yi         
+            position.y = yi      
+
+            yMaxUsed = yi       
 
             xi = plus xi offset
             yi = plus yi Y_ADJUST_INCREMENT   
@@ -424,12 +428,19 @@ setGraphPositions
                   isLeftmost = false
 
                position.x = xi
-               position.y = yi         
+               position.y = yi  
+
+               yMaxUsed = yi       
 
                xi = plus xi offset
-               yi = plus yi Y_ADJUST_INCREMENT   
+               yi = plus yi Y_ADJUST_INCREMENT
 
+   yMaxUsed = plus yMaxUsed 50
 
+   if gt yMaxUsed height
+      height = yMaxUsed 
+
+   
 
 max a Int b Int > Int
 """
