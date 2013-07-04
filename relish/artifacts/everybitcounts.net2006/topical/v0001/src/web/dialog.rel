@@ -95,7 +95,7 @@ default
       => "REDIRECT"
          cat "/listOntologies/" username "?tok=" tok
 
-   ontologyUrlPath = cat "/" username "/" args[1]
+   ontologyUrlPath = cat "/" username "/" (urlPathPartEncode args[1] false)
 
    if exists ontologyUrlPath
       if eq (len args) 2
@@ -103,7 +103,7 @@ default
          => "REDIRECT"
             cat ontologyUrlPath "/" ontology.root.urlPathComponent "?tok=" tok
       else            
-         topicUrlPathComponent = args[2]
+         topicUrlPathComponent = urlPathPartEncode args[2] false
          topicUrlPath = cat ontologyUrlPath "/" topicUrlPathComponent
          if exists topicUrlPath
             topic = summon topicUrlPath
