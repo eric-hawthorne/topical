@@ -24,7 +24,7 @@ loginAction
 """
  Process a login or user signup dialog.
 """
-   print "loginAction"
+   // print "loginAction"
    nextUrl nextFound = kw["next"]
    if not nextUrl
       nextFound = false
@@ -75,11 +75,11 @@ loginAction
    visit.loggedInTime = visit.lastRequestTime
 
    if nextFound
-      print "next:" (cat nextUrl "?tok=" visit.token)
+      // print "next:" (cat nextUrl "?tok=" visit.token)
       => "REDIRECT"
          cat nextUrl "?tok=" visit.token
 
-   print cat "/" username "?tok=" visit.token
+   // print cat "/" username "?tok=" visit.token
    => "REDIRECT"
       cat "/" username "?tok=" visit.token
 

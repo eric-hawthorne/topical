@@ -34,20 +34,14 @@ urlSanitize s String > String
  Returns a version of the string made safe to be a nice looking URL path component.
  TODO: This is currently lame.
 """
-   s2 = urlPathPartEncode s
-   print s
-   print s2
-   => s2
+   => urlPathPartEncode s
 
 
 unsanitize s String > String
 """
  Inverse of urlSanitize.
 """
-   s2 = urlPathPartDecode s
-   print s
-   print s2
-   => s2
+   => urlPathPartDecode s
 
 
 ontologyNameFormat s String > String

@@ -46,11 +46,24 @@ listOntologies username String tok String > String Any
  Handles a request for the root (i.e. empty path) url on the server and port.
  Should yield a list of ontologies.
 """
+   
+   visit loginPage = ensureLoggedIn tok (cat "/?next=/listOntologies/" username)
+   if not visit
+      => "REDIRECT"
+         loginPage
+
    user = summon username 
+
+   visibleOntologies = []model.Ontology
+   for ontology in user.ontologies
+      if hasPermission visit.user "view" ontology
+         visibleOntologies += ontology
+   
    => "listOntologies.html"
       {
-         "ontologies" => user.ontologies
+         "ontologies" => visibleOntologies
          "tok"        => tok
+         "username"   => username
       }String > Any
 
 
@@ -151,12 +164,28 @@ default
                     cat "/" username "?tok=" tok
 
 
+
+createOntology username String name String tok String > String Any
+"""
+ Processes the form for creating a new ontology on the list ontologies page.
+"""
+   ontologyUrlPath = cat "/" username "/" (urlPathPartEncode name)
+   => "REDIRECT"
+      cat "/create" ontologyUrlPath "?tok=" tok
+
+
+
 create username String ontologyUrlPath String tok String > String Any
 """
  Confirms that the user wishes to create a new ontology with the given name.
  Also verifies, again, that such an ontology does not already exist.
 """
    ontologyUrlPath = cat "/" username "/" ontologyUrlPath
+
+   // print "ontologyUrlPath" ontologyUrlPath
+   // print "name" (ontologyNameFormat ontologyUrlPath)
+   // print "uns" (unsanitize ontologyUrlPath)
+
    => "create.html"
       {
          "urlPath" => ontologyUrlPath
@@ -542,5 +571,6 @@ graph topic String tok String > String Any
          "width"  => width
          "height" => height
       }String > Any
+
 
 

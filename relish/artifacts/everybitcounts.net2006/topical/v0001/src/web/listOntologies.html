@@ -7,7 +7,7 @@
 </head>
 <body>
 {{$tok := .tok}}
-<h1>Topical Ontologies</h1>
+<h1>Topical Ontologies - {{.username}}</h1>
 <table>	    
 {{range .ontologies}} 
 	<tr>
@@ -25,6 +25,29 @@
 	http://topicalhost.org/username/my-biology-knowledge-base
 	</p>
 {{end}}
+</table>
+<p>
+	An Ontology is a network of inter-related concepts or topics. The ontology typically contains some general concepts / topics, and other concepts / topics which are specializations, examples, or parts of the general concepts / topics. It is up to you whether you create just a single diverse ontology to contain all of your topic notes, or create a separate ontology for each general subject area or project.
+</p>
+<table>
+	<form action="/createOntology" method="POST">
+	<input type="hidden" name="username" value="{{.username}}" />
+	<input type="hidden" name="tok" value="{{$tok}}" />	
+	<tr>
+		<td>
+			Ontology Name:
+	    </td>
+		<td>
+			<input name="name" type="text" size="40" />
+		</td>
+		<td>
+			&nbsp;
+		</td>		
+		<td>
+			<input type="submit" value="create new ontology" />
+		</td>
+	</tr>
+    </form>
 </table>
 </body>
 </html>
