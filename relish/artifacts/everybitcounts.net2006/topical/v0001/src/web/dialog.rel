@@ -29,6 +29,10 @@ index
 
    tok tokFound = kw["tok"]
    if tokFound
+      if not exists tok
+         => errPage fill "Error: Token not valid." tok
+                    "Ok"       
+                    "/"
       visit = summon tok
       notice = getNotice visit
    else
@@ -52,6 +56,10 @@ listOntologies username String tok String > String Any
       => "REDIRECT"
          loginPage
 
+   if not exists username
+      => errPage fill "Error: User '%s' not found." username
+                 "Ok"       
+                 "/"
    user = summon username 
 
    visibleOntologies = []model.Ontology
@@ -210,6 +218,10 @@ createAction ontologyUrlPath String rootTopicTitle String action String tok Stri
                  "Ok"       
                  cat "/" username "?tok=" tok
 
+   if not exists username
+      => errPage fill "Error: User '%s' not found." username
+                 "Ok"       
+                 "/"
    user = summon username
 
    topic = model.Topic
@@ -248,6 +260,10 @@ addParent topic String tok String > String Any
  Display a dialog asking user to either search for a topic to be the parent,
  or create a new topic to be the parent.
 """
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 "/"
    childTopic = summon topic
    => "addParentOrChild.html"
       {"url"=>topic "title"=>childTopic.title "rel"=>"parent" "relCap"=>"Parent" "tok"=>tok}String > String
@@ -258,6 +274,10 @@ addChild topic String tok String > String Any
  Display a dialog asking user to either search for a topic to be the child,
  or create a new topic to be the child.
 """
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic     
+                 "Ok"       
+                 "/"
    parentTopic = summon topic
    => "addParentOrChild.html"
       {"url"=>topic "title"=>parentTopic.title "rel"=>"child" "relCap"=>"Child" "tok"=>tok}String > String
@@ -268,6 +288,10 @@ addTo topic String tok String > String Any
  Display a dialog asking user to either search for a topic to be the target of a relationship arrow
  or create a new topic to be the target.
 """
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 "/"
    fromTopic = summon topic
    => "addToOrFrom.html"
       {"url"=>topic "title"=>fromTopic.title "rel"=>"related-to" "relCap"=>"Related-To" "tok"=>tok}String > String
@@ -279,6 +303,10 @@ addFrom topic String tok String > String Any
  Display a dialog asking user to either search for a topic to be the source of a relationship arrow
  or create a new topic to be the source.
 """
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 "/"
    toTopic = summon topic
    => "addToOrFrom.html"
       {"url"=>topic "title"=>toTopic.title "rel"=>"related-from" "relCap"=>"Related-From" "tok"=>tok}String > String
@@ -289,6 +317,10 @@ addSibling topic String tok String > String Any
  Display a dialog asking user to either search for a topic to be a sibling of the topic under its
  active parent.
 """
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 "/"
    currentChildTopic = summon topic
    => "addSibling.html"
       {
@@ -311,6 +343,10 @@ linkNewTopicAction linkType String linkSubtype String topic String title String 
                  "Ok"       
                  cat topic "?tok=" tok
 
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 "/"
    fromTopic = summon topic
    fromLevel = fromTopic.level
 
@@ -410,6 +446,14 @@ linkExisting topic String chosen String rel String linkSubtype String tok String
  Link the chosen topic as a parent of the topic.
  Then return to display the original topic.
 """
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 "/"
+   if not exists chosen
+      => errPage fill "Error: Topic '%s' not found." chosen
+                 "Ok"       
+                 "/"
    fromTopic = summon topic
    chosenTopic = summon chosen
 
@@ -456,6 +500,10 @@ saveTopicAction topic String content String > String Int
 """
  Saves edited content of the topic.
 """
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 "/"
    editedTopic = summon topic
    content = stripNbsps content
    editedTopic.content = content
@@ -466,6 +514,10 @@ saveAndRenameTopicAction topic String content String newTitle String tok String 
 """
  Saves edited content of the topic, and also renames the topic.
 """
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 "/"
    editedTopic = summon topic
 
    visit err = ensureHavePermission tok "edit" editedTopic.ontology
@@ -488,6 +540,10 @@ topicDelete topic String tok String > String Any
 """
  Display a dialog seeking confirmation of deleting a topic.
 """
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 "/"
    topicToDelete = summon topic
    => "deleteTopic.html"
       {
@@ -505,6 +561,10 @@ topicDeleteAction topic String tok String action String > String String
       => "REDIRECT"
          cat topic "?tok=" tok
 
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 "/"
    topicToDelete = summon topic
    ontology = topicToDelete.ontology
    extricate topicToDelete
@@ -518,6 +578,10 @@ editChildren topic String tok String > String Any
  Re-order children in the list of children.
  Or remove a child.
 """
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 "/"
    t = summon topic
    => "editChildren.html"
       {
@@ -532,6 +596,10 @@ editChildrenAction topic String ordinal Int tok String action String > String An
  Move a child up or down in the child list, or remove it as a child.
  Redirect to the edit children page. 
 """
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 "/"
    tpc = summon topic
    if eq action " ^ " 
       swap tpc.childLinks ordinal (minus ordinal 1)
@@ -552,6 +620,10 @@ graph topic String tok String > String Any
 """
  Display a topic association graph centred on the current topic.
 """
+   if not exists topic
+      => errPage fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 "/"
    tpc = summon topic
 
    visit err = ensureHavePermission tok "view" tpc.ontology 

@@ -113,6 +113,11 @@ ensureHavePermission tok String permissionType String resource model.Resource
       user = model.ensureGuestUser
       visit.user = user
       dub visit visit.token
+   elif not exists tok
+      visit = Visit
+      user = model.ensureGuestUser
+      visit.user = user
+      dub visit visit.token
    else
       visit = summon tok
       if not isLoggedIn visit
