@@ -390,7 +390,7 @@ linkNewTopicAction linkType String linkSubtype String topic String title String 
       newTopic.activeParent = fromTopic
    else  // must be a sibling
       parent = fromTopic.activeParent
-      assertParentChild parent newTopic
+      assertParentChild parent newTopic linkSubtype
       newTopic.level = plus parent.level 1 
       newTopic.activeParent = parent     
       
