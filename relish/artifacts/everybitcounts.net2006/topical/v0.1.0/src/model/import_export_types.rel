@@ -1,0 +1,157 @@
+origin   everybitcounts.net2006
+artifact topical
+package  model
+
+"""
+ import_export_types.rel
+
+ Data types used in exporting an ontology to a flat file and importing a previously exported one. 
+"""
+
+
+JsonExporter
+"""
+ Used in serializing an ontology into a JSON string.
+"""
+   ontology Ontology
+   dbidToTopicNum {} Int > Int  // A map from dbid of a Topic to its serialized identifying number.
+   dbidToLinkNum {} Int > Int  // A map from dbid of a Link to its serialized identifying number.
+   nextTopicNum Int
+   nextLinkNum Int
+   topics [] FlatTopic
+   parentChilds [] FlatLink
+   relateds [] FlatLink
+   flatOntology FlatOntology
+
+
+initJsonExporter exp JsonExporter ontology Ontology > JsonExporter
+"""
+ Construct an exporter.
+"""
+   exp.ontology = ontology
+   exp.nextTopicNum = 1
+   exp.nextLinkNum = 1
+   => exp
+
+
+JsonImporter
+"""
+ Used in deserializing an ontology from a JSON string.
+"""
+   flatOntology FlatOntology
+   topicNumToTopic {} Int > Int  // A map from serialized identifying number of a topic to the topic itself.
+
+
+initJsonExporter imp JsonImporter fo FlatOntology > JsonImporter
+"""
+ Construct an importer.
+"""
+   imp.flatOntology = fo
+   => imp
+
+
+
+
+
+FlatTopic
+"""
+ A single note page, representing a concept or topic.
+"""
+   title String
+   urlPathComponent String
+   content String
+   lineColor ?String
+   fillColor ?String
+   titleColor ?String
+   level Int  // 0 = root, 1 = child of root, 2 or more = more indirect descendent of root than that 
+   num Int  // Identifying number of the topic in the ontology for use in serialized representation.   
+
+
+initFlatTopic ft FlatTopic t Topic idNum Int > FlatTopic
+"""
+ Copies a topic to create a flat topic.
+"""
+   ft.title = t.title
+   ft.urlPathComponent = t.urlPathComponent
+   ft.content = t.content
+   ft.lineColor = t.lineColor
+   ft.fillColor = t.fillColor
+   ft.titleColor = t.titleColor
+   ft.level = t.level
+   ft.num = idNum
+   => ft
+
+
+initTopic t Topic ft FlatTopic > Topic
+"""
+ Copies a flat topic to create a topic.
+"""
+   t.title = ft.title
+   t.urlPathComponent = ft.urlPathComponent
+   t.content = ft.content
+   t.lineColor = ft.lineColor
+   t.fillColor = ft.fillColor
+   t.titleColor = ft.titleColor
+   t.level = ft.level
+   => t   
+
+
+
+FlatLink
+"""
+ A link between two topics.
+"""
+   type String  // "ParentChild" | "Related" 
+   subType ?String  // "SupertypeSubtype" | "WholePart" | "BeforeAfter"
+   label ?String
+   color ?String
+   labelColor ?String
+   num Int  // Identifying number of the link in the ontology for use in serialized representation.   
+   topic1 Int
+   topic2 Int
+
+
+initFlatLink fl FlatLink l Link idNum Int > FlatLink
+"""
+ Copies a link to create a flat link.
+"""
+   fl.type = l.type
+   fl.subType= l.subType
+   fl.label = l.label
+   fl.color = l.color
+   fl.labelColor = l.labelColor
+   fl.num = idNum
+   => fl  
+
+
+
+FlatOntology
+"""
+ A set of linked topics. This is the serializable version.
+"""
+   name String
+   urlPathComponent String
+   description String
+   rootTopicNum Int
+   userName String
+   topics [] FlatTopic
+   parentChilds [] FlatLink
+   relateds [] FlatLink   
+
+
+initFlatOntology fo FlatOntology xp JsonExporter > FlatOntology
+"""
+ Copies an Ontology to create a flat ontology.
+"""
+   o = exporter.ontology
+   fo.name = o.name
+   fo.urlPathComponent = o.urlPathComponent
+   fo.description = o.description
+   rootId = dbid o.root
+   fo.rootTopicNum = xpr.dbidToTopicNum[! rootId]
+   fo.userName = o.user.name
+   fo.topics = xp.topics
+   fo.parentChilds = xp.parentChilds
+   fo.relateds = xp.relateds
+   => fo
+

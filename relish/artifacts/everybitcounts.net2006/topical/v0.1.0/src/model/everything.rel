@@ -161,7 +161,7 @@ goesTo t1 Topic t2 Topic > Bool
 
 
 
-assertParentChild p Topic c Topic linkSubtype String > err String
+assertParentChild p Topic c Topic linkSubtype String > pc ParentChild err String
 """
  Check if the topics are already related directly in a
  parent child sense.
@@ -195,7 +195,7 @@ assertParentChild p Topic c Topic linkSubtype String > err String
    p.childLinks += pc
 
 
-assertRelated from Topic to Topic > err String
+assertRelated from Topic to Topic > r Related err String
 """
  Assert an ad-hoc relationship between one topic and another, if 
  the same label of relationshup does not already exist.

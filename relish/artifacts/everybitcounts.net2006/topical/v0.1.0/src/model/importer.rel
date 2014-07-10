@@ -1,0 +1,100 @@
+origin   everybitcounts.net2006
+artifact topical
+package  model
+
+"""
+ importer.rel
+
+ Methods to import an ontology from a flat file.
+"""
+
+
+import
+   strings
+
+
+importFromJson json String > ontology Ontology err String
+"""
+ Creates an ontology object network from a previously exported json string.
+"""
+   flatOntology err = jsonUnmarshal json FlatOntology 
+   if err 
+      =>
+
+   importer = JsonImporter flatOntology
+   ontology err = unflattenOntology imp
+
+
+unflattenOntology imp JsonImporter > ontology Ontology err String
+"""
+ Creates a persistent ontology (network) from a flat (serializable) ontology.
+"""
+   fo = imp.flatOntology
+
+   if not exists fo.userName
+      err = cat "User " fo.userName " does not exist." 
+      =>
+
+   if exists fo.urlPathComponent
+     err = cat "Ontology " fo.urlPathComponent " already exists. Cannot import to create it."
+
+   user = summon username
+
+   ontology = model.Ontology
+   ontology.name = fo.name
+   ontology.urlPathComponent = fo.ontologyUrlPath
+   ontology.description = fo.description
+   ontology.user = user
+
+   dub ontology ontologyUrlPath
+
+   for flatTopic in fo.topics
+      topic = model.Topic flatTopic
+
+      topicUrlPath = urlPath topic
+
+      dub topic topicUrlPath
+
+      imp.topicNumToTopic[flatTopic.num] = topic
+
+   for parentChild in fo.parentChilds
+      p = imp.topicNumToTopic[! parentChild.topic1]
+      c = imp.topicNumToTopic[! parentChild.topic2]
+      pc err = assertParentChild p c parentChild.subType
+      if err
+         =>
+      pc.label = parentChild.label
+      pc.color = parentChild.color
+      pc.labelColor = parentChild.labelColor      
+
+   for related in fo.relateds
+      from = imp.topicNumToTopic[! related.topic1]
+      to = imp.topicNumToTopic[! related.topic2]
+      r err = assertRelated from to
+      if err
+         =>
+      r.label = related.label
+      r.color = related.color
+      r.labelColor = related.labelColor  
+
+
+   ontology.root = imp.topicNumToTopic[! fo.rootTopicNum]
+
+   grantPermission user "view" ontology
+   grantPermission user "edit" ontology
+   grantPermission user "create" ontology
+   grantPermission user "delete" ontology
+   grantPermission user "rename" ontology
+
+
+
+
+
+
+
+
+
+
+
+
+

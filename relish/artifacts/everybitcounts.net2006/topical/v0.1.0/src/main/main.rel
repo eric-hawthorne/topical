@@ -1,6 +1,6 @@
 origin   everybitcounts.net2006
 artifact topical
-package  web
+package  main
 
 """
  main.rel
@@ -8,14 +8,9 @@ package  web
  starts the web application.
 """
 
-// import
-//    model
-
 
 main
 """
  Just say hi.
 """
    print "Starting Topical application."
-//   model.ensureBaseModel
-//   e1 = model.Election

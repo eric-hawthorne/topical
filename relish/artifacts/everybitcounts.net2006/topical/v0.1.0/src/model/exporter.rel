@@ -1,0 +1,97 @@
+origin   everybitcounts.net2006
+artifact topical
+package  model
+
+"""
+ exporter.rel
+
+ Methods to export an ontology to a flat file.
+"""
+
+
+exportToJson ontology Ontology > json String err String
+"""
+ Flattens the ontology into a serialized json format.
+"""
+   exporter = JsonExporter ontology
+   flattenOntology exporter ontology.root
+   rootId = dbid ontology.root
+   exporter.flatOntology = FlatOntology exporter
+   json err = jsonMarshal exporter.flatOntology
+
+
+flattenOntology 
+   xp JsonExporter
+   topic Topic  
+"""
+ Populates lists of flat (un-networked) versions topics and links.
+ These can be JSON-serialized later.
+ Ensures it does not loop in an object network with reference loops.
+"""
+   topicId = dbid topic
+   if xp.dbidToTopicNum[?topicId]  // Already visited this topic
+      =>
+
+   topicNum = xp.nextTopicNum
+   flatTopic = FlatTopic topic topicNum
+   xp.topics += flatTopic   
+   xp.dbidToTopicNum[topicId] = topicNum
+   xp.nextTopicNum = plus topicNum 1
+
+   for link in topic.childLinks
+      linkId = dbid link
+
+      if xp.dbidToLinkNum[? linkId]  // Already visited this link
+         break
+      linkNum = xp.nextLinkNum
+      flatLink = FlatLink link linkNum
+      xp.parentChilds += flatLink
+      xp.dbidToLinkNum[linkId] = linkNum
+      xp.nextLinkNum = plus linkNum 1      
+      flattenOntology xp link.child
+      topic2Id = dbid link.child
+      flatLink.topic1 = topicNum  // topic 1 is parent      
+      flatLink.topic2 = xp.dbidToTopicNum[! topic2Id]  // topic2 is child 
+   
+   for link in topic.parentLinks
+      linkId = dbid link
+      if xp.dbidToLinkNum[? linkId]  // Already visited this link
+         break
+      linkNum = xp.nextLinkNum         
+      flatLink = FlatLink link linkNum
+      xp.parentChilds += flatLink      
+      xp.dbidToLinkNum[linkId] = linkNum
+      xp.nextLinkNum = plus linkNum 1      
+      flattenOntology xp link.parent
+      topic1Id = dbid link.parent
+      flatLink.topic1 = xp.dbidToTopicNum[! topic1Id]  // topic 1 is parent      
+      flatLink.topic2 = topicNum  // topic2 is child  
+
+   for link in topic.toLinks
+      linkId = dbid link
+
+      if xp.dbidToLinkNum[? linkId]  // Already visited this link
+         break
+      linkNum = xp.nextLinkNum
+      flatLink = FlatLink link linkNum
+      xp.relateds += flatLink
+      xp.dbidToLinkNum[linkId] = linkNum
+      xp.nextLinkNum = plus linkNum 1      
+      flattenOntology xp link.to
+      topic2Id = dbid link.to
+      flatLink.topic1 = topicNum  // topic 1 is from      
+      flatLink.topic2 = xp.dbidToTopicNum[! topic2Id]  // topic2 is to
+   
+   for link in topic.fromLinks
+      linkId = dbid link
+      if xp.dbidToLinkNum[? linkId]  // Already visited this link
+         break
+      linkNum = xp.nextLinkNum         
+      flatLink = FlatLink link linkNum
+      xp.relateds += flatLink
+      xp.dbidToLinkNum[linkId] = linkNum
+      xp.nextLinkNum = plus linkNum 1      
+      flattenOntology xp link.from
+      topic1Id = dbid link.from
+      flatLink.topic1 = xp.dbidToTopicNum[! topic1Id]  // topic 1 is from      
+      flatLink.topic2 = topicNum  // topic2 is to  

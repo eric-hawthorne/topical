@@ -645,4 +645,29 @@ graph topic String tok String > String Any
       }String > Any
 
 
+export ...args [] String > String Any
+"""
+ Return a JSON representation of an ontology.
 
+ /export/username/ontology_url_path
+
+ TODO There is no security on this method yet.
+"""
+
+   ontologyUrlPath = cat "/" (args[0] "/" (urlPathPartEncode args[1] false)
+
+   if not exists ontologyUrlPath
+       => errPage fill "Error: Ontology '%s' does not exist." ontologyUrlPath
+                  "Ok"       
+                  "/"
+
+   ontology = summon ontologyUrlPath
+
+   json err = exportToJson ontology
+   if err
+      => errPage fill "Error exporting to JSON: %s." err
+                 "Ok"       
+                 "/"
+
+   => "JSON PRE"
+      json
