@@ -11,13 +11,15 @@ package  model
 
 import
    strings
+   json
 
 
-importFromJson json String > ontology Ontology err String
+importFromJson jsonEncoded String > ontology Ontology err String
 """
  Creates an ontology object network from a previously exported json string.
 """
-   flatOntology err = jsonUnmarshal json FlatOntology 
+   flatOntology = FlatOntology
+   flatOntology err = jsonUnmarshal jsonEncoded flatOntology
    if err 
       =>
 
@@ -36,20 +38,20 @@ unflattenOntology imp JsonImporter > ontology Ontology err String
       =>
 
    if exists fo.urlPathComponent
-     err = cat "Ontology " fo.urlPathComponent " already exists. Cannot import to create it."
+      err = cat "Ontology " fo.urlPathComponent " already exists. Cannot import to create it."
 
    user = summon username
 
-   ontology = model.Ontology
+   ontology = Ontology
    ontology.name = fo.name
    ontology.urlPathComponent = fo.ontologyUrlPath
    ontology.description = fo.description
    ontology.user = user
 
-   dub ontology ontologyUrlPath
+   dub ontology fo.ontologyUrlPath
 
    for flatTopic in fo.topics
-      topic = model.Topic flatTopic
+      topic = Topic flatTopic
 
       topicUrlPath = urlPath topic
 

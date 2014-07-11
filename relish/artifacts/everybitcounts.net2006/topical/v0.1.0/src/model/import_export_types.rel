@@ -31,6 +31,11 @@ initJsonExporter exp JsonExporter ontology Ontology > JsonExporter
    exp.ontology = ontology
    exp.nextTopicNum = 1
    exp.nextLinkNum = 1
+   exp.dbidToTopicNum = {}Int > Int
+   exp.dbidToLinkNum = {}Int > Int   
+   exp.topics = []FlatTopic
+   exp.parentChilds = []FlatLink
+   exp.relateds = []FlatLink
    => exp
 
 
@@ -39,14 +44,15 @@ JsonImporter
  Used in deserializing an ontology from a JSON string.
 """
    flatOntology FlatOntology
-   topicNumToTopic {} Int > Int  // A map from serialized identifying number of a topic to the topic itself.
+   topicNumToTopic {} Int > Topic  // A map from serialized identifying number of a topic to the topic itself.
 
 
-initJsonExporter imp JsonImporter fo FlatOntology > JsonImporter
+initJsonImporter imp JsonImporter fo FlatOntology > JsonImporter
 """
  Construct an importer.
 """
    imp.flatOntology = fo
+   imp.topicNumToTopic = {}Int > Topic
    => imp
 
 
@@ -116,7 +122,7 @@ initFlatLink fl FlatLink l Link idNum Int > FlatLink
  Copies a link to create a flat link.
 """
    fl.type = l.type
-   fl.subType= l.subType
+   fl.subType = l.subType
    fl.label = l.label
    fl.color = l.color
    fl.labelColor = l.labelColor
@@ -143,12 +149,12 @@ initFlatOntology fo FlatOntology xp JsonExporter > FlatOntology
 """
  Copies an Ontology to create a flat ontology.
 """
-   o = exporter.ontology
+   o = xp.ontology
    fo.name = o.name
    fo.urlPathComponent = o.urlPathComponent
    fo.description = o.description
    rootId = dbid o.root
-   fo.rootTopicNum = xpr.dbidToTopicNum[! rootId]
+   fo.rootTopicNum = xp.dbidToTopicNum[! rootId]
    fo.userName = o.user.name
    fo.topics = xp.topics
    fo.parentChilds = xp.parentChilds

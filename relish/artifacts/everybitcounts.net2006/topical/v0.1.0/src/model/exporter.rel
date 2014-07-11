@@ -9,7 +9,11 @@ package  model
 """
 
 
-exportToJson ontology Ontology > json String err String
+import
+   json
+
+
+exportToJson ontology Ontology > jsonEncoded String err String
 """
  Flattens the ontology into a serialized json format.
 """
@@ -17,7 +21,7 @@ exportToJson ontology Ontology > json String err String
    flattenOntology exporter ontology.root
    rootId = dbid ontology.root
    exporter.flatOntology = FlatOntology exporter
-   json err = jsonMarshal exporter.flatOntology
+   jsonEncoded err = jsonMarshal exporter.flatOntology
 
 
 flattenOntology 
@@ -29,7 +33,7 @@ flattenOntology
  Ensures it does not loop in an object network with reference loops.
 """
    topicId = dbid topic
-   if xp.dbidToTopicNum[?topicId]  // Already visited this topic
+   if xp.dbidToTopicNum[? topicId]  // Already visited this topic
       =>
 
    topicNum = xp.nextTopicNum

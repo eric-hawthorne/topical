@@ -654,12 +654,12 @@ export ...args [] String > String Any
  TODO There is no security on this method yet.
 """
 
-   ontologyUrlPath = cat "/" (args[0] "/" (urlPathPartEncode args[1] false)
+   ontologyUrlPath = cat "/" args[0] "/" (urlPathPartEncode args[1] false)
 
    if not exists ontologyUrlPath
-       => errPage fill "Error: Ontology '%s' does not exist." ontologyUrlPath
-                  "Ok"       
-                  "/"
+      => errPage fill "Error: Ontology '%s' does not exist." ontologyUrlPath
+                 "Ok"       
+                 "/"
 
    ontology = summon ontologyUrlPath
 
