@@ -24,7 +24,7 @@ importFromJson jsonEncoded String > ontology Ontology err String
       =>
 
    importer = JsonImporter flatOntology
-   ontology err = unflattenOntology imp
+   ontology err = unflattenOntology importer
 
 
 unflattenOntology imp JsonImporter > ontology Ontology err String
@@ -40,18 +40,19 @@ unflattenOntology imp JsonImporter > ontology Ontology err String
    if exists fo.urlPathComponent
       err = cat "Ontology " fo.urlPathComponent " already exists. Cannot import to create it."
 
-   user = summon username
+   user = summon fo.userName
 
    ontology = Ontology
    ontology.name = fo.name
-   ontology.urlPathComponent = fo.ontologyUrlPath
+   ontology.urlPathComponent = fo.urlPathComponent
    ontology.description = fo.description
    ontology.user = user
 
-   dub ontology fo.ontologyUrlPath
+   dub ontology fo.urlPathComponent
 
    for flatTopic in fo.topics
       topic = Topic flatTopic
+      topic.ontology = ontology
 
       topicUrlPath = urlPath topic
 

@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>
+topicality - import an exported ontology
+</title>
+
+ <link rel="stylesheet" type="text/css" id="stylesheet"
+       href="/styles/default.css" />
+
+</head>
+<body>
+<div>
+	<h3>Upload exported ontology JSON text file</h3>	
+<p>
+	Upload a JSON-formatted exported ontology, to create
+    the ontology as an editable persistent object network on the server.
+</p>	
+<p>
+<form class="form-signin" method="post" action="/importOntologyAction" enctype="multipart/form-data">
+    <fieldset>
+      <input type="file" name="myfile" id="myfile"/>
+      <input type="submit"  value="upload ontology file"/>
+  </fieldset>
+</form>
+</p>
+<p>
+ Note: You can't currently import to replace an existing ontology.
+ You must give the JSON ontology a different name and urlPathComponent, or
+ a different userName, corresponding to another existing user.
+</p>
+</div>
+</body>
+</html>

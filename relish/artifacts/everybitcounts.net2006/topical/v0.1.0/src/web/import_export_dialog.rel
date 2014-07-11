@@ -1,0 +1,97 @@
+origin   everybitcounts.net2006
+artifact topical
+package  web
+
+"""
+ import_export_dialog.rel
+
+ Web request handlers for exporting and importing an ontology.
+"""
+
+import
+   model
+   view
+   strings
+   http_srv
+
+
+export ...args [] String > String Any
+"""
+ Return a JSON representation of an ontology.
+
+ /export/username/ontology_url_path
+
+ TODO There is no security on this method yet.
+
+ Save the result as a text file. Not using content-disposition yet.
+"""
+
+   ontologyUrlPath = cat "/" args[0] "/" (urlPathPartEncode args[1] false)
+
+   if not exists ontologyUrlPath
+      => errPage fill "Error: Ontology '%s' does not exist." ontologyUrlPath
+                 "Ok"       
+                 "/"
+
+   ontology = summon ontologyUrlPath
+
+   json err = exportToJson ontology
+   if err
+      => errPage fill "Error exporting to JSON: %s." err
+                 "Ok"       
+                 "/"
+
+   => "JSON PRE"
+      json
+
+
+
+importOntology > String String
+"""
+ Presents a page inviting user to upload a JSON-formatted exported ontology.
+
+ Note: You can't currently import to replace an existing ontology.
+ You must give the JSON ontology a different name and urlPathComponent, or
+ a different userName, corresponding to another existing user.
+
+ TODO There is no security on this method yet.
+"""
+   => "HTML FILE"
+      "importOntology.html"
+
+
+importOntologyAction request http_srv.Request > String String
+"""
+ Processes an upload of a JSON-formatted exported ontology, and creation
+ of the ontology as a persistent object network.
+
+ Note: You can't currently import to replace an existing ontology.
+ You must give the JSON ontology a different name and urlPathComponent, or
+ a different userName, corresponding to another existing user.
+"""
+   file err = uploadedFile request "myfile"
+   if err
+      => errf "Error: File upload failed:" err   
+
+   fileName = name file
+   err = open file
+   if err
+      => errf "Error opening uploaded file" fileName err
+  
+   jsonContent err = readAllText file
+   if err
+      => errf "Error reading uploaded file" fileName err
+
+   close file 
+
+   ontology err = importFromJson jsonContent 
+   if err
+      => errf "Error: Ontology creation failed: " err              
+
+
+   => "HTML"
+      """
+<html>
+Created ontology !
+</html>
+"""
