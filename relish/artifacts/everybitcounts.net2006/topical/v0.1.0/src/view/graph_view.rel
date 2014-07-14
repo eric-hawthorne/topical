@@ -575,11 +575,11 @@ distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int
    freeWidth = minus canvasWidth usedWidth
    if gt freeWidth 0  
       widthIncrement = div freeWidth nGaps
-   xDelta = 0
-   for topic in topicRow[1:]
-      xDelta = plus xDelta widthIncrement
-      pos = position topic user      
-      pos.x = plus pos.x xDelta
+      xDelta = 0
+      for topic in topicRow[1:]
+         xDelta = plus xDelta widthIncrement
+         pos = position topic user      
+         pos.x = plus pos.x xDelta
 
 
 
