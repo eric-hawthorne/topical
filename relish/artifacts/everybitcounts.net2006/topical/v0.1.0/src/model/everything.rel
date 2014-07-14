@@ -362,6 +362,7 @@ position topic Topic user User > Position
    for pos in topic.positions
       if eq pos.user user
          => pos 
-   => nil
-
-
+   pos = Position
+   pos.user = user
+   pos.topic = topic
+   => pos

@@ -1,4 +1,5 @@
 body {
+	font-family: Arial,sans-serif;
 }
 
 div {
@@ -58,7 +59,7 @@ td#rel {
 
 
 td#cont {
-	font-size: 12pt;
+	font-size: 10pt;
 	min-width: 40em;
 }
 

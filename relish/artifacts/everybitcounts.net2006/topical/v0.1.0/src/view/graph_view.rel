@@ -16,7 +16,9 @@ import
 
 MIN_Y_SEPARATION = 100
 Y_SEP_GROWTH = 25
-CHAR_WIDTH = 14
+CHAR_WIDTH = 8
+GRAND_SQUEEZE = 2  // Squishing nodes together if grandparents or grandchildren
+GREAT_GRAND_SQUEEZE = 5  // Squishing nodes together if great grandparents or great grandchildren
 CHAR_HEIGHT = 14
 MAX_TITLE_CHARS_DISPLAYED = 40
 X_MIN = 50
@@ -37,8 +39,8 @@ setGraphPositions
  The positions are represented as position objects related to the user and each topic.
  Returns the required width and height of the canvas for the graph.
 """ 
-   wa = ancestorsWidth topic
-   wd = descendantsWidth topic
+   wa wp wgp wggp = ancestorsWidth topic
+   wd wc wgc wggc = descendantsWidth topic
    width = plus
               max wa wd
               times 2 X_MIN
@@ -51,23 +53,127 @@ setGraphPositions
                      times MIN_Y_SEPARATION 3
                      times Y_SEP_GROWTH 3
                        
-   x = div width 3  // A little to the left of centre.
-   y = div height 2 
+   x = div (times width 2) 5  // A little to the left of centre.
 
-   position = nil
-   for pos in topic.positions
-      if eq pos.user user
-         position = pos
-         break
-   if not position
-      position = model.Position
-      position.user = user
-      position.topic = topic
+   numLayers = 0
 
-   position.x = x
-   position.y = y
+   np = len topic.parentLinks
+   ngp = 0 
+   nggp = 0
 
-   focusPosition = position  // Save the position of the focus topic
+   if np
+      numLayers = 1
+
+      // Collect Grandparents
+      grandParents = []model.Topic
+      for parentLink in topic.parentLinks
+         parent = parentLink.parent
+         for gpLink in parent.parentLinks
+            grandParents += gpLink.parent
+
+      ngp = len grandParents
+
+      if ngp
+         numLayers = 2
+
+         // Collect Great Grandparents
+         greatGrandParents = []model.Topic
+         for grandparent in grandParents
+            for ggpLink in grandparent.parentLinks
+               greatGrandParents += ggpLink.parent
+
+         nggp = len greatGrandParents
+         if nggp
+            numLayers = 3
+
+   nc = len topic.childLinks
+   ngc = 0
+   nggc = 0
+
+   if nc
+      numLayers = plus numLayers 1
+
+      // Collect Grandchildren
+      grandChildren = []model.Topic
+      for childLink in topic.childLinks
+         child = childLink.child
+         for gpLink in child.childLinks
+            grandChildren += gpLink.child
+
+      ngc = len grandChildren
+
+      if ngc
+         numLayers = plus numLayers 1      
+         
+         // Collect Great Grandchildren
+         greatGrandChildren = []model.Topic
+         for grandchild in grandChildren
+            for ggcLink in grandchild.childLinks
+               greatGrandChildren += ggcLink.child
+
+         nggc = len greatGrandChildren
+         if nggc
+            numLayers = plus numLayers 1
+
+   height = plus 
+               times 2 Y_MIN
+               plus 
+                  times MIN_Y_SEPARATION numLayers
+                  times Y_SEP_GROWTH numLayers
+
+   if np
+      if ngp
+         if nggp
+            if nc
+               if ngc
+                  if nggc  // All 7 layers
+                     y = div height 2  
+                  else  // 6 layers - bottom 1 missing
+                     y = div (times 2 height) 3
+               else  // 5 layers - bottom 2 missing
+                  y = div (times 4 height) 5
+            else  // 4 layers - topic is bottom
+               y = minus height Y_MIN
+         else
+            if nc
+               if ngc
+                  if nggc  //  6 layers
+                     y = div (times 1 height) 3
+                  else  // 5 layers - bottom 1 missing
+                     y = div height 2  
+               else  // 4 layers - bottom 2 missing
+                  y = div (times 3 height) 4
+            else  // 3 layers - topic is bottom
+               y = minus height Y_MIN    
+      else              
+         if nc
+            if ngc
+               if nggc  //  5 layers
+                  y = div (times 1 height) 5
+               else  // 4 layers - bottom 1 missing
+                  y = div height 4  
+            else  // 3 layers - bottom 2 missing
+               y = div (times 3 height) 4
+         else  // 2 layers - topic is bottom
+            y = minus height Y_MIN    
+   else              
+      if nc
+         if ngc
+            if nggc  //  4 layers
+               y = Y_MIN
+            else  // 3 layers - bottom 1 missing
+               y = div height 4  
+         else  // 2 layers - bottom 2 missing
+            y = div height 3
+      else  // 1 layers - topic is bottom
+         y = div height 2            
+
+
+   pos = position topic user
+   pos.x = x
+   pos.y = y
+
+   focusPosition = pos  // Save the position of the focus topic
    focusTopicWidth = times (len topic.title) CHAR_WIDTH
 
 
@@ -85,15 +191,7 @@ setGraphPositions
       isLeftmost = true
       for toLink in topic.toLinks
          related = toLink.to
-         position = nil
-         for pos in related.positions
-            if eq pos.user user
-               position = pos
-               break
-         if not position
-            position = model.Position
-            position.user = user
-            position.topic = related
+         pos = position related user
 
          offset = times
                      min (len related.title) MAX_TITLE_CHARS_DISPLAYED
@@ -104,8 +202,8 @@ setGraphPositions
             // print related.title xi 
             isLeftmost = false 
 
-         position.x = xi
-         position.y = yi         
+         pos.x = xi
+         pos.y = yi         
 
          xMaxUsed = plus xi offset
          yMaxUsed = plus yi CHAR_HEIGHT
@@ -122,15 +220,7 @@ setGraphPositions
       isLeftmost = true
       for fromLink in topic.fromLinks
          related = fromLink.from
-         position = nil
-         for pos in related.positions
-            if eq pos.user user
-               position = pos
-               break
-         if not position
-            position = model.Position
-            position.user = user
-            position.topic = related
+         pos = position related user      
 
          offset = times
                      min (len related.title) MAX_TITLE_CHARS_DISPLAYED
@@ -141,8 +231,8 @@ setGraphPositions
             // print related.title xi 
             isLeftmost = false 
 
-         position.x = xi
-         position.y = yi         
+         pos.x = xi
+         pos.y = yi         
 
          xMaxUsed = max xMaxUsed (plus xi offset)
          yMaxUsed = plus yi CHAR_HEIGHT
@@ -186,26 +276,22 @@ setGraphPositions
 
 
    // Lay out Parents
-   np = len topic.parentLinks
+
    yi = minus y MIN_Y_SEPARATION 
  
-   yAdjust = times Y_ADJUST_INCREMENT (div np 2)
-   yi = minus yi yAdjust
+   // EGH not doing this any more because alternating y bumps up and down
+   // yAdjust = times Y_ADJUST_INCREMENT (div np 2)
+   // yi = minus yi yAdjust
+
+   prevOffset = 0
 
    if np
       xi = X_MIN
       isLeftmost = true
+      isOdd = true
       for parentLink in topic.parentLinks
          parent = parentLink.parent
-         position = nil
-         for pos in parent.positions
-            if eq pos.user user
-               position = pos
-               break
-         if not position
-            position = model.Position
-            position.user = user
-            position.topic = parent
+         pos = position parent user
 
          offset = times
                      min (len parent.title) MAX_TITLE_CHARS_DISPLAYED
@@ -215,63 +301,64 @@ setGraphPositions
             xi = plus xi (div offset 2)
             // print parent.title xi 
             isLeftmost = false 
+         else
+            xi = plus xi 
+                      div (plus offset prevOffset) 2
+         prevOffset = offset
 
-         position.x = xi
-         position.y = yi         
 
-         xi = plus xi offset
-         yi = plus yi Y_ADJUST_INCREMENT
-      
-      // Collect Grandparents
-      grandParents = []model.Topic
-      for parentLink in topic.parentLinks
-         parent = parentLink.parent
-         for gpLink in parent.parentLinks
-            grandParents += gpLink.parent
+         if isOdd  // EGH new
+            yi = plus yi Y_ADJUST_INCREMENT
+         pos.x = xi
+         pos.y = yi         
+         if isOdd  // EGH new
+            yi = minus yi Y_ADJUST_INCREMENT
+            isOdd = false
+         else
+            isOdd = true   
+
 
       // Lay out Grandparents
-      ngp = len grandParents
+
       yi = minus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
-      yAdjust = times Y_ADJUST_INCREMENT (div ngp 2)
-      yi = minus yi yAdjust
+
+      // EGH not doing this any more because alternating y bumps up and down      
+      // yAdjust = times Y_ADJUST_INCREMENT (div ngp 2)
+      // yi = minus yi yAdjust
 
       if ngp
          xi = X_MIN
          isLeftmost = true
+         isOdd = true         
          for grandParent in grandParents
-            position = nil
-            for pos in grandParent.positions
-               if eq pos.user user
-                  position = pos
-                  break
-            if not position
-               position = model.Position
-               position.user = user
-               position.topic = grandParent
+            pos = position grandParent user
 
             offset = times
                         min (len grandParent.title) MAX_TITLE_CHARS_DISPLAYED
-                        CHAR_WIDTH
+                        minus CHAR_WIDTH GRAND_SQUEEZE
 
             if isLeftmost
                xi = plus xi (div offset 2)
                isLeftmost = false
+            else
+               xi = plus xi 
+                         div (plus offset prevOffset) 2
+            prevOffset = offset
 
-            position.x = xi
-            position.y = yi         
+            if isOdd  // EGH new
+               yi = plus yi Y_ADJUST_INCREMENT
 
-            xi = plus xi offset
-            yi = plus yi Y_ADJUST_INCREMENT   
+            pos.x = xi
+            pos.y = yi         
+            if isOdd  // EGH new
+               yi = minus yi Y_ADJUST_INCREMENT
+               isOdd = false
+            else
+               isOdd = true   
 
-
-         // Collect Great Grandparents
-         greatGrandParents = []model.Topic
-         for grandparent in grandParents
-            for ggpLink in grandparent.parentLinks
-               greatGrandParents += ggpLink.parent
 
          // Lay out Great Grandparents
-         nggp = len greatGrandParents
+
          yi = minus yi 
                     plus MIN_Y_SEPARATION (times 2 Y_SEP_GROWTH)
          yAdjust = times Y_ADJUST_INCREMENT (div nggp 2)
@@ -280,56 +367,50 @@ setGraphPositions
          if nggp
             xi = X_MIN
             isLeftmost = true
+            isOdd = true
             for greatGrandParent in greatGrandParents
-               position = nil
-               for pos in greatGrandParent.positions
-                  if eq pos.user user
-                     position = pos
-                     break
-               if not position
-                  position = model.Position
-                  position.user = user
-                  position.topic = greatGrandParent
+               pos = position greatGrandParent user
 
                offset = times
                            min (len greatGrandParent.title) MAX_TITLE_CHARS_DISPLAYED
-                           CHAR_WIDTH
+                           minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
 
                if isLeftmost
                   xi = plus xi (div offset 2)
                   isLeftmost = false
+               else
+                  xi = plus xi 
+                            div (plus offset prevOffset) 2
+               prevOffset = offset
 
-               position.x = xi
-               position.y = yi         
-
-               xi = plus xi offset
-               yi = plus yi Y_ADJUST_INCREMENT   
-
+               if isOdd  // EGH new
+                  yi = plus yi Y_ADJUST_INCREMENT
+               pos.x = xi
+               pos.y = yi      
+               if isOdd  // EGH new
+                  yi = minus yi Y_ADJUST_INCREMENT
+                  isOdd = false
+               else
+                  isOdd = true                      
 
    // Lay out Children
-   nc = len topic.childLinks
+
    yi = plus y MIN_Y_SEPARATION 
 
    if gt yMaxUsed yi
       yi = yMaxUsed
-
-   yAdjust = times Y_ADJUST_INCREMENT (div nc 2)
-   yi = minus yi yAdjust
+   
+   // EGH not doing this any more because alternating y bumps up and down                  
+   // yAdjust = times Y_ADJUST_INCREMENT (div nc 2)
+   // yi = minus yi yAdjust
 
    if nc
       xi = X_MIN
       isLeftmost = true
+      isOdd = true
       for childLink in topic.childLinks
          child = childLink.child
-         position = nil
-         for pos in child.positions
-            if eq pos.user user
-               position = pos
-               break
-         if not position
-            position = model.Position
-            position.user = user
-            position.topic = child
+         pos = position child user
 
          offset = times
                      min (len child.title) MAX_TITLE_CHARS_DISPLAYED
@@ -339,24 +420,29 @@ setGraphPositions
             xi = plus xi (div offset 2)      
             // print child.title xi       
             isLeftmost = false
+         else
+            xi = plus xi 
+                      div (plus offset prevOffset) 2
+         prevOffset = offset
 
-         position.x = xi
-         position.y = yi    
+         if isOdd  // EGH new
+            yi = minus yi Y_ADJUST_INCREMENT
+         pos.x = xi
+         pos.y = yi    
 
-         yMaxUsed = yi     
+         yMaxUsed = yi  
 
-         xi = plus xi offset
-         yi = plus yi Y_ADJUST_INCREMENT
-      
-      // Collect Grandchildren
-      grandChildren = []model.Topic
-      for childLink in topic.childLinks
-         child = childLink.child
-         for gpLink in child.childLinks
-            grandChildren += gpLink.child
+         if isOdd  // EGH new
+            yi = plus yi Y_ADJUST_INCREMENT
+            isOdd = false
+         else
+            isOdd = true   
+
+         // print child.title "offset" offset "xi" xi
+
 
       // Lay out Grandchildren
-      ngc = len grandChildren
+
       yi = plus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
       yAdjust = times Y_ADJUST_INCREMENT (div ngc 2)
       yi = minus yi yAdjust
@@ -364,42 +450,39 @@ setGraphPositions
       if ngc
          xi = X_MIN
          isLeftmost = true
+         isOdd = true
          for grandChild in grandChildren
-            position = nil
-            for pos in grandChild.positions
-               if eq pos.user user
-                  position = pos
-                  break
-            if not position
-               position = model.Position
-               position.user = user
-               position.topic = grandChild
+            pos = position grandChild user
 
             offset = times
                         min (len grandChild.title) MAX_TITLE_CHARS_DISPLAYED
-                        CHAR_WIDTH
+                        minus CHAR_WIDTH GRAND_SQUEEZE
 
             if isLeftmost
                xi = plus xi (div offset 2)             
                isLeftmost = false
+            else
+               xi = plus xi 
+                         div (plus offset prevOffset) 2
+            prevOffset = offset
 
-            position.x = xi
-            position.y = yi      
+            if isOdd  // EGH new
+               yi = minus yi Y_ADJUST_INCREMENT
 
-            yMaxUsed = yi       
+            pos.x = xi
+            pos.y = yi      
 
-            xi = plus xi offset
-            yi = plus yi Y_ADJUST_INCREMENT   
+            yMaxUsed = yi   
+
+            if isOdd  // EGH new
+               yi = plus yi Y_ADJUST_INCREMENT
+               isOdd = false
+            else
+               isOdd = true    
 
 
-         // Collect Great Grandchildren
-         greatGrandChildren = []model.Topic
-         for grandchild in grandChildren
-            for ggcLink in grandchild.childLinks
-               greatGrandChildren += ggcLink.child
+         // Lay out Great Grandchildren
 
-         // Lay out Great Grandpchildren
-         nggc = len greatGrandChildren
          yi = plus yi 
                    plus MIN_Y_SEPARATION (times 2 Y_SEP_GROWTH)
          yAdjust = times Y_ADJUST_INCREMENT (div nggc 2)
@@ -408,39 +491,50 @@ setGraphPositions
          if nggc
             xi = X_MIN
             isLeftmost = true
+            isOdd = true
             for greatGrandChild in greatGrandChildren
-               position = nil
-               for pos in greatGrandChild.positions
-                  if eq pos.user user
-                     position = pos
-                     break
-               if not position
-                  position = model.Position
-                  position.user = user
-                  position.topic = greatGrandChild
+               pos = position greatGrandChild user
 
                offset = times
                            min (len greatGrandChild.title) MAX_TITLE_CHARS_DISPLAYED
-                           CHAR_WIDTH
+                           minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
 
                if isLeftmost
                   xi = plus xi (div offset 2)             
                   isLeftmost = false
+               else
+                  xi = plus xi 
+                            div (plus offset prevOffset) 2
+               prevOffset = offset
 
-               position.x = xi
-               position.y = yi  
+               if isOdd  // EGH new
+                  yi = minus yi Y_ADJUST_INCREMENT
+               
+               pos.x = xi
+               pos.y = yi  
 
-               yMaxUsed = yi       
+               yMaxUsed = yi 
 
-               xi = plus xi offset
-               yi = plus yi Y_ADJUST_INCREMENT
+               if isOdd  // EGH new
+                  yi = plus yi Y_ADJUST_INCREMENT
+                  isOdd = false
+               else
+                  isOdd = true                       
 
    yMaxUsed = plus yMaxUsed 50
 
    if gt yMaxUsed height
       height = yMaxUsed 
 
-   
+   if nggp
+      distribute greatGrandParents user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width
+   if ngp
+      distribute grandParents user (minus CHAR_WIDTH GRAND_SQUEEZE) width
+   if nggc
+      distribute greatGrandChildren user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width
+   if ngc
+      distribute grandChildren user (minus CHAR_WIDTH GRAND_SQUEEZE) width
+
 
 max a Int b Int > Int
 """
@@ -460,10 +554,40 @@ min a Int b Int > Int
    => a
 
 
-ancestorsWidth topic model.Topic > Int
+
+distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int
+"""
+ Distribute extra horizontal space along a row of topics in the graph.
+"""
+   last = minus (len topicRow) 1
+   nGaps = last   
+   if not nGaps
+      =>
+   lastTopic = topicRow[last]
+   extra = div
+              times 
+                 min (len lastTopic.title) MAX_TITLE_CHARS_DISPLAYED
+                 charWidth
+              2
+   pos = position lastTopic user           
+   usedWidth = plus pos.x (plus extra X_MIN)
+
+   freeWidth = minus canvasWidth usedWidth
+   if gt freeWidth 0  
+      widthIncrement = div freeWidth nGaps
+   xDelta = 0
+   for topic in topicRow[1:]
+      xDelta = plus xDelta widthIncrement
+      pos = position topic user      
+      pos.x = plus pos.x xDelta
+
+
+
+ancestorsWidth topic model.Topic > wa Int wp Int wgp Int wggp Int
 """
  Return a width based on an estimate of the width needed to display the titles of 
  parents, grandparents, and great grandparents of the topic.
+ Also returns separarate widths of the parent, grandparent, and great grandparent row.
 """
    n1 = 0
    n2 = 0
@@ -481,7 +605,7 @@ ancestorsWidth topic model.Topic > Int
                  n2
                  times 
                     min (len grandParent.title) MAX_TITLE_CHARS_DISPLAYED
-                    CHAR_WIDTH
+                    minus CHAR_WIDTH GRAND_SQUEEZE
 
          for ggpLink in grandParent.parentLinks
             ggParent = ggpLink.parent
@@ -489,11 +613,13 @@ ancestorsWidth topic model.Topic > Int
                     n3
                     times 
                        min (len ggParent.title) MAX_TITLE_CHARS_DISPLAYED
-                       CHAR_WIDTH
-   => max (max n3 n2) n1
+                       minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
+   wa = max (max n3 n2) n1
+   wp wgp wggp = n1 n2 n3
+
    
 
-descendantsWidth topic model.Topic > Int
+descendantsWidth topic model.Topic > wd Int wp Int wgp Int wggp Int
 """
  Return a width based on an estimate of the width needed to display the titles of 
  children, grandchildren, and great grandchildren of the topic.
@@ -514,7 +640,7 @@ descendantsWidth topic model.Topic > Int
                  n2
                  times 
                     min (len grandChild.title) MAX_TITLE_CHARS_DISPLAYED
-                    CHAR_WIDTH
+                    minus CHAR_WIDTH GRAND_SQUEEZE
 
          for ggpLink in grandChild.childLinks
             ggChild = ggpLink.child
@@ -522,8 +648,8 @@ descendantsWidth topic model.Topic > Int
                     n3
                     times 
                        min (len ggChild.title) MAX_TITLE_CHARS_DISPLAYED
-                       CHAR_WIDTH
-   => max (max n3 n2) n1 
-
+                       minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
+   wd = max (max n3 n2) n1
+   wc wgc wggc = n1 n2 n3
 
 
