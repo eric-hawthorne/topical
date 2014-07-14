@@ -168,6 +168,16 @@ setGraphPositions
       else  // 1 layers - topic is bottom
          y = div height 2            
 
+   parents = [
+                for parentLink in topic.parentLinks
+                   parentLink.parent
+             ]model.Topic
+
+   children = [
+                 for childLink in topic.childLinks
+                    childLink.child
+              ]model.Topic
+
 
    pos = position topic user
    pos.x = x
@@ -289,8 +299,7 @@ setGraphPositions
       xi = X_MIN
       isLeftmost = true
       isOdd = true
-      for parentLink in topic.parentLinks
-         parent = parentLink.parent
+      for parent in parents
          pos = position parent user
 
          offset = times
@@ -408,8 +417,7 @@ setGraphPositions
       xi = X_MIN
       isLeftmost = true
       isOdd = true
-      for childLink in topic.childLinks
-         child = childLink.child
+      for child in children
          pos = position child user
 
          offset = times
@@ -530,10 +538,26 @@ setGraphPositions
       distribute greatGrandParents user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width
    if ngp
       distribute grandParents user (minus CHAR_WIDTH GRAND_SQUEEZE) width
+   if np
+      if gt wgp wp
+         distribute parents 
+                    user 
+                    CHAR_WIDTH 
+                    minus width (times 2 X_MIN) 
+      else 
+         distribute parents user CHAR_WIDTH width       
    if nggc
       distribute greatGrandChildren user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width
    if ngc
       distribute grandChildren user (minus CHAR_WIDTH GRAND_SQUEEZE) width
+   if nc
+      if gt wgc wc
+         distribute children
+                    user 
+                    CHAR_WIDTH 
+                    minus width (times 2 X_MIN) 
+      else
+         distribute children user CHAR_WIDTH width
 
 
 max a Int b Int > Int
