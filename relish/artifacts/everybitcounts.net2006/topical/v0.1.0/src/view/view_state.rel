@@ -205,7 +205,16 @@ nextToken t Time > String
  Currently just uses a hash of the time. Should use another factor such
  as an incrementing number.
 """
+   if contextExists "tokenCounter"
+      c = context "tokenCounter"
+   else
+      c = 1     
+      nc = plus c 1
+      if gt nc 999999999
+         nc = 1
+   contextPut nc "tokenCounter"
+
    => replace
-         base64Hash format t "2006-01-02T15:04:05.999999999Z07:00"
+         base64Hash cat c "|" (format t "2006-01-02T15:04:05.999999999Z07:00")
          "="
          ""

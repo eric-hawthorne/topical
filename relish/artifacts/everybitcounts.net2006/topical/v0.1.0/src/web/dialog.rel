@@ -12,6 +12,7 @@ import
    model
    view
    strings
+   http_srv   
 
 
 index 
@@ -21,7 +22,9 @@ index
    Any
 """
  Handles a request for the root (i.e. empty path) url on the server and port.
- Should yield a list of ontologies.
+ Displays a user login page, which may or may not have a designated next URL path to
+ continue to after the user logs in. This is determined by whether the "?next=" parameter
+ is set on the request for the root url.
 """  
    nextUrl nextFound = kw["next"]
    if not nextFound
@@ -87,6 +90,7 @@ listOntologies username String tok String > String Any
 
 
 default 
+   request http_srv.Request 
    ...kw {} String > String
    ...args [] String
 >
@@ -108,7 +112,13 @@ default
        editable = hasPermission user  "edit" topic.ontology
 
 """
-   tok = kw[! "tok"]
+   // tok = kw[! "tok"]
+   sessionCookie err = cookie request "SESS"
+   if err
+      tok = ""
+   else 
+      tok = value sessionCookie
+
 
    username = args[0] 
 

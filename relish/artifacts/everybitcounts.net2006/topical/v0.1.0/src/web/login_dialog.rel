@@ -12,6 +12,7 @@ import
    model
    view
    strings
+   http_srv
     
 
 loginAction 
@@ -20,6 +21,7 @@ loginAction
    ...kw {} String > String 
 > 
    String 
+   String
    Any
 """
  Process a login or user signup dialog.
@@ -76,33 +78,46 @@ loginAction
 
    if nextFound
       // print "next:" (cat nextUrl "?tok=" visit.token)
-      => "REDIRECT"
-         cat nextUrl "?tok=" visit.token
+      => header setCookie "SESS" visit.token 3600 "/" ""
+         "REDIRECT"
+         nextUrl  // cat nextUrl "?tok=" visit.token       
+
 
    // print cat "/" username "?tok=" visit.token
-   => "REDIRECT"
-      cat "/" username "?tok=" visit.token
+   => header setCookie "SESS" visit.token 3600 "/" ""
+      "REDIRECT"
+      cat "/" username  // cat "/" username "?tok=" visit.token     
+
 
 
 
 
          
-createUser username String tok String > String Any
+createUser request http_srv.Request username String tok String > String String Any
 """
  Display dialog inviting creation of a new user account.
 """
+   sessionCookie err = cookie request "SESS"
+   if err
+      tok = ""
+   else 
+      tok = value sessionCookie
+
+
    visit back = ensureActiveSession tok "/"
    if not visit
-      => "REDIRECT" back
+      => "REDIRECT" back nil
 
-   => "createUser.html"
+   => header setCookie "SESS" visit.token 3600 "/" "" 
+      "createUser.html"
       {
          "token"     => tok
          "username"  => username
       }String > String
       
    
-createUserAction 
+createUserAction
+   request http_srv.Request 
    username String 
    pw String
    pw2 String
@@ -115,6 +130,14 @@ createUserAction
 """
  Process creation of a new user account.
 """
+   sessionCookie err = cookie request "SESS"
+   if err
+      tok = ""
+   else 
+      tok = value sessionCookie
+   print "createUserAction" (String sessionCookie)   
+
+
    visit back = ensureActiveSession tok "/"
    if not visit
       => "REDIRECT" back
