@@ -15,7 +15,8 @@ import
    http_srv   
 
 
-index 
+index
+   request http_srv.Request 
    ...kw {} String > String 
 > 
    String 
@@ -26,20 +27,21 @@ index
  continue to after the user logs in. This is determined by whether the "?next=" parameter
  is set on the request for the root url.
 """  
+
+   tok = session request
    nextUrl nextFound = kw["next"]
    if not nextFound
       mextUrl = ""
 
-   tok tokFound = kw["tok"]
-   if tokFound
-      if not exists tok
-         => errPage fill "Error: Token not valid." tok
-                    "Ok"       
-                    "/"
-      visit = summon tok
-      notice = getNotice visit
-   else
-      notice = ""
+   notice = ""
+
+   tok = session request
+   if tok
+      if exists tok
+         visit = summon tok
+         notice = getNotice visit
+      else
+         notice = "Your login session has expired. Please log in."
 
    => "index.html"
       {
@@ -48,15 +50,20 @@ index
       }String > Any
 
 
-listOntologies username String tok String > String Any
+listOntologies request http_srv.Request username String > String String Any
 """
- Handles a request for the root (i.e. empty path) url on the server and port.
- Should yield a list of ontologies.
+ Display a list of the ontologies created by or viewable by the user.
+ Also displays a form to create a new ontology.
 """
-   
-   visit loginPage = ensureLoggedIn tok (cat "/?next=/listOntologies/" username)
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok (cat "/?next=/listOntologies/" username)
    if not visit
       => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
          loginPage
 
    if not exists username
@@ -70,7 +77,8 @@ listOntologies username String tok String > String Any
       if hasPermission visit.user "view" ontology
          visibleOntologies += ontology
    
-   => "listOntologies.html"
+   => header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""
+      "listOntologies.html"
       {
          "ontologies" => visibleOntologies
          "tok"        => tok
@@ -96,6 +104,7 @@ default
 >
    String 
    Any
+   Any
 """
  Handles all url paths on this server and port which are not otherwise handled.
 
@@ -113,26 +122,24 @@ default
 
 """
    // tok = kw[! "tok"]
-   sessionCookie err = cookie request "SESS"
-   if err
-      tok = ""
-   else 
-      tok = value sessionCookie
-
-
+   tok = session request 
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+   
    username = args[0] 
 
    if eq (len args) 1 
-      => "REDIRECT"
-         cat "/listOntologies/" username "?tok=" tok
+      => extendSession
+         "REDIRECT"
+         cat "/listOntologies/" username
 
    ontologyUrlPath = cat "/" username "/" (urlPathPartEncode args[1] false)
 
    if exists ontologyUrlPath
       if eq (len args) 2
          ontology = summon ontologyUrlPath
-         => "REDIRECT"
-            cat ontologyUrlPath "/" ontology.root.urlPathComponent "?tok=" tok
+         => extendSession
+            "REDIRECT"
+            cat ontologyUrlPath "/" ontology.root.urlPathComponent
       else            
          topicUrlPathComponent = urlPathPartEncode args[2] false
          topicUrlPath = cat ontologyUrlPath "/" topicUrlPathComponent
@@ -145,66 +152,99 @@ default
                if exists activeParentUrlPath
                   topic.activeParent = summon activeParentUrlPath
                else
-                  => errPage fill "Error: Unknown topic '%s'" activeParentUrlPath
+                  => errPage extendSession
+                             fill "Error: Unknown topic '%s'" activeParentUrlPath
                              "Ok"       
                              ontologyUrlPath
-               => "REDIRECT"
-                  cat topicUrlPath "?tok=" tok
+               => extendSession
+                  "REDIRECT"
+                  topicUrlPath
  
             ensureActiveParent topic
 
             visit err = ensureHavePermission tok "view" topic.ontology 
 
             if err
-               => "REDIRECT"
-                  cat "/?next=" topicUrlPath "&tok=" visit.token 
+               => extendSession
+                  "REDIRECT"
+                  cat "/?next=" topicUrlPath
 
             editable = hasPermission visit.user "edit" topic.ontology
 
 
-            => "topic.html" 
+            => extendSession
+               "topic.html" 
                {
                   "topic"    => topic
                   "editable" => editable
                   "tok"      => visit.token
                }String > Any
          else
-            => errPage fill "Error: Unknown topic '%s'" topicUrlPath
+            => errPage extendSession
+                       fill "Error: Unknown topic '%s'" topicUrlPath
                        "Ok"       
-                       cat ontologyUrlPath "?tok=" tok
+                       ontologyUrlPath
    else
       if eq (len args) 2
-         => "REDIRECT"
-            cat "/create" ontologyUrlPath "?tok=" tok
+         => extendSession
+            "REDIRECT"
+            cat "/create" ontologyUrlPath 
       else
-         => errPage fill "Error: Unknown ontology '%s'" ontologyUrlPath
+         => errPage extendSession
+                    fill "Error: Unknown ontology '%s'" ontologyUrlPath
                     "Ok"       
-                    cat "/" username "?tok=" tok
+                    cat "/" username 
 
 
 
-createOntology username String name String tok String > String Any
+createOntology request http_srv.Request username String name String > String String Any
 """
  Processes the form for creating a new ontology on the list ontologies page.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok "/"
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    ontologyUrlPath = cat "/" username "/" (urlPathPartEncode name)
-   => "REDIRECT"
-      cat "/create" ontologyUrlPath "?tok=" tok
+   => extendSession
+      "REDIRECT"
+      cat "/create" ontologyUrlPath 
 
 
 
-create username String ontologyUrlPath String tok String > String Any
+create request http_srv.Request username String ontologyUrlPath String > String String Any
 """
  Confirms that the user wishes to create a new ontology with the given name.
  Also verifies, again, that such an ontology does not already exist.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok "/"
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    ontologyUrlPath = cat "/" username "/" ontologyUrlPath
 
    // print "ontologyUrlPath" ontologyUrlPath
    // print "name" (ontologyNameFormat ontologyUrlPath)
    // print "uns" (unsanitize ontologyUrlPath)
 
-   => "create.html"
+   => extendSession
+      "create.html"
       {
          "urlPath" => ontologyUrlPath
          "name"    => ontologyNameFormat ontologyUrlPath
@@ -212,24 +252,39 @@ create username String ontologyUrlPath String tok String > String Any
       }String > String
 
 
-createAction ontologyUrlPath String rootTopicTitle String action String tok String > String Any
+createAction request http_srv.Request ontologyUrlPath String rootTopicTitle String action String > String String Any
 """
  Actually creates a new ontology, after verifying that the ontology name does not already exist.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok "/"
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    i = lastIndex ontologyUrlPath "/"  
    username = slice ontologyUrlPath 1 i
 
    if eq action "Cancel"
-      => "REDIRECT"
-         cat "/" username "?tok=" tok
+      => extendSession
+         "REDIRECT"
+         cat "/" username 
 
    if exists ontologyUrlPath
-      => errPage fill "Error: Ontology '%s' already exists." ontologyUrlPath
+      => errPage extendSession
+                 fill "Error: Ontology '%s' already exists." ontologyUrlPath
                  "Ok"       
-                 cat "/" username "?tok=" tok
+                 cat "/" username
 
    if not exists username
-      => errPage fill "Error: User '%s' not found." username
+      => errPage extendSession
+                 fill "Error: User '%s' not found." username
                  "Ok"       
                  "/"
    user = summon username
@@ -261,100 +316,184 @@ createAction ontologyUrlPath String rootTopicTitle String action String tok Stri
 
    dub topic topicUrlPath
 
-   => "REDIRECT"
+   => extendSession
+      "REDIRECT"
       cat topicUrlPath "?tok=" tok
 
 
-addParent topic String tok String > String Any
+addParent request http_srv.Request topic String > String String Any
 """
  Display a dialog asking user to either search for a topic to be the parent,
  or create a new topic to be the parent.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    if not exists topic
-      => errPage fill "Error: Topic '%s' not found." topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
                  "Ok"       
                  "/"
    childTopic = summon topic
-   => "addParentOrChild.html"
-      {"url"=>topic "title"=>childTopic.title "rel"=>"parent" "relCap"=>"Parent" "tok"=>tok}String > String
+   => extendSession
+      "addParentOrChild.html"
+      {"url"=>topic "title"=>childTopic.title "rel"=>"parent" "relCap"=>"Parent"}String > String
       
 
-addChild topic String tok String > String Any
+addChild request http_srv.Request topic String > String String Any
 """
  Display a dialog asking user to either search for a topic to be the child,
  or create a new topic to be the child.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    if not exists topic
-      => errPage fill "Error: Topic '%s' not found." topic     
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic     
                  "Ok"       
                  "/"
    parentTopic = summon topic
-   => "addParentOrChild.html"
-      {"url"=>topic "title"=>parentTopic.title "rel"=>"child" "relCap"=>"Child" "tok"=>tok}String > String
+   => extendSession
+      "addParentOrChild.html"
+      {"url"=>topic "title"=>parentTopic.title "rel"=>"child" "relCap"=>"Child"}String > String
 
 
-addTo topic String tok String > String Any
+addTo request http_srv.Request topic String > String String Any
 """
  Display a dialog asking user to either search for a topic to be the target of a relationship arrow
  or create a new topic to be the target.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    if not exists topic
       => errPage fill "Error: Topic '%s' not found." topic
                  "Ok"       
                  "/"
    fromTopic = summon topic
-   => "addToOrFrom.html"
-      {"url"=>topic "title"=>fromTopic.title "rel"=>"related-to" "relCap"=>"Related-To" "tok"=>tok}String > String
+   => extendSession
+      "addToOrFrom.html"
+      {"url"=>topic "title"=>fromTopic.title "rel"=>"related-to" "relCap"=>"Related-To"}String > String
 
 
 
-addFrom topic String tok String > String Any
+addFrom request http_srv.Request topic String > String String Any
 """
  Display a dialog asking user to either search for a topic to be the source of a relationship arrow
  or create a new topic to be the source.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    if not exists topic
-      => errPage fill "Error: Topic '%s' not found." topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
                  "Ok"       
                  "/"
    toTopic = summon topic
-   => "addToOrFrom.html"
-      {"url"=>topic "title"=>toTopic.title "rel"=>"related-from" "relCap"=>"Related-From" "tok"=>tok}String > String
+   => extendSession
+      "addToOrFrom.html"
+      {"url"=>topic "title"=>toTopic.title "rel"=>"related-from" "relCap"=>"Related-From"}String > String
 
 
-addSibling topic String tok String > String Any
+addSibling request http_srv.Request topic String > String String Any
 """
  Display a dialog asking user to either search for a topic to be a sibling of the topic under its
  active parent.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    if not exists topic
-      => errPage fill "Error: Topic '%s' not found." topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
                  "Ok"       
                  "/"
    currentChildTopic = summon topic
-   => "addSibling.html"
+   => extendSession
+      "addSibling.html"
       {
          "url"    => topic 
          "title"  => currentChildTopic.title 
          "parent" => currentChildTopic.activeParent
-         "tok"    => tok
       }String > Any
 
 
 
-linkNewTopicAction linkType String linkSubtype String topic String title String tok String > String Any
+linkNewTopicAction request http_srv.Request linkType String linkSubtype String topic String title String 
+> String String Any
 """
  Create a new topic, and establish it in a particular type of linked relationship with
  the original topic. Then display the new topic in the topic display UI.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    title = trimSpace title
    if not title
-      => errPage "Error: New topic must be given a title." 
+      => errPage extendSession
+                 "Error: New topic must be given a title." 
                  "Ok"       
                  cat topic "?tok=" tok
 
    if not exists topic
-      => errPage fill "Error: Topic '%s' not found." topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
                  "Ok"       
                  "/"
    fromTopic = summon topic
@@ -362,7 +501,8 @@ linkNewTopicAction linkType String linkSubtype String topic String title String 
 
    visit err = ensureHavePermission tok "edit" fromTopic.ontology
    if err
-      => "REDIRECT" 
+      => extendSession
+         "REDIRECT" 
          cat "/?next=" topic "&tok=" tok
 
    newTopic = model.Topic
@@ -376,9 +516,10 @@ linkNewTopicAction linkType String linkSubtype String topic String title String 
    topicUrlPath = urlPath newTopic
    
    if exists topicUrlPath
-      => errPage fill "Error: Topic '%s' already exists." title
+      => errPage extendSession
+                 fill "Error: Topic '%s' already exists." title
                  "Ok"       
-                 cat topic "?tok=" tok
+                 topic 
 
    dub newTopic topicUrlPath
 
@@ -404,20 +545,35 @@ linkNewTopicAction linkType String linkSubtype String topic String title String 
       newTopic.level = plus parent.level 1 
       newTopic.activeParent = parent     
       
-   => "REDIRECT"
-      cat topicUrlPath "?tok=" tok
+   => extendSession
+      "REDIRECT"
+      topicUrlPath 
 
 
-topicSearch next String rel String linkSubtype String topic String key String tok String > String Any
+topicSearch request http_srv.Request next String rel String linkSubtype String topic String key String 
+> String String Any
 """
  Displays a page containing a list of topics whose title contains the key.
  TODO extend to searching content.  
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    key = trimSpace key
    if lt (len key) 2
-      => errPage "Please specify a longer keyword to search for topics."
+      => errPage extendSession
+                 "Please specify a longer keyword to search for topics."
                  "Ok"       
-                 cat topic "?tok=" tok
+                 topic
    // print "got to 1"
    topics1 = []model.Topic cat "title like '%" key "%' order by title"
    // print "got to 2"
@@ -436,32 +592,47 @@ topicSearch next String rel String linkSubtype String topic String key String to
          topics1 += topic3
       // print "got to 8"
    if not topics1
-      => errPage "No topics match your search key."
+      => errPage extendSession
+                 "No topics match your search key."
                  "Ok"  
-                 cat topic "?tok=" tok    
-   => "chooseTopic.html"
+                 topic  
+   => extendSession
+      "chooseTopic.html"
       {
          "topics"      => topics1
          "next"        => next
          "rel"         => rel
          "linkSubtype" => linkSubtype
          "topic"       => topic 
-         "tok"         => tok
       }String > Any         
 
 
 
-linkExisting topic String chosen String rel String linkSubtype String tok String > String Any
+linkExisting request http_srv.Request topic String chosen String rel String linkSubtype String > String String Any
 """
  Link the chosen topic as a parent of the topic.
  Then return to display the original topic.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    if not exists topic
-      => errPage fill "Error: Topic '%s' not found." topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
                  "Ok"       
                  "/"
    if not exists chosen
-      => errPage fill "Error: Topic '%s' not found." chosen
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." chosen
                  "Ok"       
                  "/"
    fromTopic = summon topic
@@ -469,8 +640,9 @@ linkExisting topic String chosen String rel String linkSubtype String tok String
 
    visit err = ensureHavePermission tok "edit" fromTopic.ontology
    if err
-      => "REDIRECT" 
-         cat "/?next=" topic "&tok=" tok
+      => extendSession
+         "REDIRECT" 
+         cat "/?next=" topic
 
    // Now link to the new topic from the old one.
 
@@ -493,47 +665,84 @@ linkExisting topic String chosen String rel String linkSubtype String tok String
    else  // must be a sibling
       parent = fromTopic.activeParent
       if eq chosenTopic fromTopic
-         => errPage "Cannot choose self as a sibling."
+         => errPage extendSession
+                    "Cannot choose self as a sibling."
                     "Ok"  
-                    cat topic "?tok=" tok
+                    topic
       assertParentChild parent chosenTopic linkSubtype
       chosenTopic.activeParent = parent  
       possibleNewLevel = plus 1 parent.level
       if lt possibleNewLevel chosenTopic.level
          chosenTopic.level = possibleNewLevel
 
-   => "REDIRECT"
-      cat topic "?tok=" tok
+   => extendSession
+      "REDIRECT"
+      topic
 
 
-saveTopicAction topic String content String > String Int
+saveTopicAction request http_srv.Request topic String content String > String String Int
 """
  Saves edited content of the topic.
+
+ TODO - Fix up what to do if not logged in. This is called by ajax I  think.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      print "saveTopicAction no visit" 
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      print "saveTopicAction non-logged-in visit"    
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    if not exists topic
-      => errPage fill "Error: Topic '%s' not found." topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
                  "Ok"       
                  "/"
    editedTopic = summon topic
    content = stripNbsps content
    editedTopic.content = content
-   => "HTTP CODE" 200
+   => extendSession "HTTP CODE" 200
 
 
-saveAndRenameTopicAction topic String content String newTitle String tok String > String String
+saveAndRenameTopicAction request http_srv.Request topic String content String newTitle String > String String String
 """
  Saves edited content of the topic, and also renames the topic.
+
+ TODO - Fix up what to do if not logged in. This is called by ajax I  think.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      print "saveAndRenameTopicAction no visit" 
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      print "saveAndRenameTopicAction non-logged-in visit"    
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    if not exists topic
-      => errPage fill "Error: Topic '%s' not found." topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
                  "Ok"       
                  "/"
    editedTopic = summon topic
 
    visit err = ensureHavePermission tok "edit" editedTopic.ontology
    if err
-      => "REDIRECT" 
-         cat "/?next=" topic "&tok=" tok
+      => extendSession
+         "REDIRECT" 
+         cat "/?next=" topic
 
    content = stripNbsps content
    newTitle = stripNbsps newTitle
@@ -542,72 +751,127 @@ saveAndRenameTopicAction topic String content String newTitle String tok String 
    editedTopic.urlPathComponent = urlSanitize newTitle
    editedTopicUrlPath = urlPath editedTopic
    rename topic editedTopicUrlPath
-   => "REDIRECT"
-      cat editedTopicUrlPath "?tok=" tok
+   => extendSession
+      "REDIRECT"
+      editedTopicUrlPath
 
 
-topicDelete topic String tok String > String Any
+topicDelete request http_srv.Request topic String > String String Any
 """
  Display a dialog seeking confirmation of deleting a topic.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn 
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    if not exists topic
-      => errPage fill "Error: Topic '%s' not found." topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
                  "Ok"       
                  "/"
    topicToDelete = summon topic
-   => "deleteTopic.html"
+   => extendSession
+      "deleteTopic.html"
       {
          "topic" => topicToDelete 
-         "tok"   => tok
       }String > Any
 
 
-topicDeleteAction topic String tok String action String > String String
+topicDeleteAction request http_srv.Request topic String action String > String String String
 """
  Actually delete a topic, unless cancelled, in which case redirect to display the topic.
  If deletes the topic, redirects to display the root topic of the ontology.
 """
-   if eq action "Cancel"
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
       => "REDIRECT"
-         cat topic "?tok=" tok
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
+   if eq action "Cancel"
+      => extendSession
+         "REDIRECT"
+         topic
 
    if not exists topic
-      => errPage fill "Error: Topic '%s' not found." topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
                  "Ok"       
                  "/"
    topicToDelete = summon topic
    ontology = topicToDelete.ontology
    extricate topicToDelete
    delete topicToDelete
-   => "REDIRECT"
-      cat ontology.urlPathComponent "?tok=" tok
+   => extendSession
+      "REDIRECT"
+      ontology.urlPathComponent
    
 
-editChildren topic String tok String > String Any
+editChildren request http_srv.Request topic String > String String Any
 """
  Re-order children in the list of children.
  Or remove a child.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    if not exists topic
-      => errPage fill "Error: Topic '%s' not found." topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
                  "Ok"       
                  "/"
    t = summon topic
-   => "editChildren.html"
+   => extendSession
+      "editChildren.html"
       {
          "topic" => t
-         "tok"   => tok
       }String > Any
 
 
 
-editChildrenAction topic String ordinal Int tok String action String > String Any
+editChildrenAction request http_srv.Request topic String ordinal Int action String > String String Any
 """
  Move a child up or down in the child list, or remove it as a child.
  Redirect to the edit children page. 
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    if not exists topic
-      => errPage fill "Error: Topic '%s' not found." topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
                  "Ok"       
                  "/"
    tpc = summon topic
@@ -621,17 +885,31 @@ editChildrenAction topic String ordinal Int tok String action String > String An
       tpc.childLinks -= childLink
       childLink.child.parentLinks -= childLink
 
-   => "REDIRECT"
-      cat "editChildren?topic=" topic "&tok=" tok
+   => extendSession
+      "REDIRECT"
+      cat "editChildren?topic=" topic
 
 
 
-graph topic String tok String > String Any
+graph request http_srv.Request topic String > String String Any
 """
  Display a topic association graph centred on the current topic.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    if not exists topic
-      => errPage fill "Error: Topic '%s' not found." topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
                  "Ok"       
                  "/"
    tpc = summon topic
@@ -639,16 +917,17 @@ graph topic String tok String > String Any
    visit err = ensureHavePermission tok "view" tpc.ontology 
 
    if err
-      => "REDIRECT"
-         cat "/?next=" topic "&tok=" visit.token
+      => extendSession
+         "REDIRECT"
+         cat "/?next=" topic 
 
    // compute the positions of the topic for this user
    width height = setGraphPositions tpc visit.user
 
-   => "graph.html"
+   => extendSession
+      "graph.html"
       {
          "topic"  => tpc
-         "tok"    => tok
          "user"   => visit.user
          "width"  => width
          "height" => height

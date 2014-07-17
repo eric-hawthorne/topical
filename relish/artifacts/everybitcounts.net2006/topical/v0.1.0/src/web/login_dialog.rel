@@ -55,8 +55,12 @@ loginAction
       // Creating new account
       visit = view.Visit
       dub visit visit.token
-      => "REDIRECT"
-         cat "/createUser?username=" username "&tok=" visit.token
+
+      extendSession = header setCookie "SESS" visit.token view.ADMIN_SESSION_TIMEOUT "/" "" 
+
+      => extendSession
+         "REDIRECT"
+         cat "/createUser?username=" username
    
    // Logging in to existing user account
    if not exists username
@@ -76,15 +80,17 @@ loginAction
    visit.user = user 
    visit.loggedInTime = visit.lastRequestTime
 
+   extendSession = header setCookie "SESS" visit.token view.ADMIN_SESSION_TIMEOUT "/" "" 
+
    if nextFound
       // print "next:" (cat nextUrl "?tok=" visit.token)
-      => header setCookie "SESS" visit.token 3600 "/" ""
+      => extendSession
          "REDIRECT"
          nextUrl  // cat nextUrl "?tok=" visit.token       
 
 
    // print cat "/" username "?tok=" visit.token
-   => header setCookie "SESS" visit.token 3600 "/" ""
+   => extendSession
       "REDIRECT"
       cat "/" username  // cat "/" username "?tok=" visit.token     
 
@@ -93,25 +99,21 @@ loginAction
 
 
          
-createUser request http_srv.Request username String tok String > String String Any
+createUser request http_srv.Request username String > String String Any
 """
  Display dialog inviting creation of a new user account.
 """
-   sessionCookie err = cookie request "SESS"
-   if err
-      tok = ""
-   else 
-      tok = value sessionCookie
-
+   tok = session request
 
    visit back = ensureActiveSession tok "/"
    if not visit
       => "REDIRECT" back nil
 
-   => header setCookie "SESS" visit.token 3600 "/" "" 
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
+   => extendSession
       "createUser.html"
       {
-         "token"     => tok
          "username"  => username
       }String > String
       
@@ -123,33 +125,31 @@ createUserAction
    pw2 String
    firstname String
    lastname String
-   tok String 
 >
+   String
    String
    Any
 """
  Process creation of a new user account.
 """
-   sessionCookie err = cookie request "SESS"
-   if err
-      tok = ""
-   else 
-      tok = value sessionCookie
-   print "createUserAction" (String sessionCookie)   
-
-
+   tok = session request
+   
    visit back = ensureActiveSession tok "/"
    if not visit
-      => "REDIRECT" back
+      => "REDIRECT" back nil
  
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
    if neq pw pw2
       setError visit "Passwords are not the same. Please re-type them." 
-      => "REDIRECT" 
-         cat "/createUser?tok=" tok
+      => extendSession
+         "REDIRECT" 
+         "/createUser" 
 
    if exists username
       setError visit "Sorry. '" username "' is already in use. Choose another." 
-      => "REDIRECT" 
+      => extendSession
+         "REDIRECT" 
          "/" 
 
    user = model.User
@@ -160,8 +160,9 @@ createUserAction
    dub user username
    visit.user = user
    visit.loggedInTime = visit.lastRequestTime
-   => "REDIRECT"
-      cat "/" username "?tok=" tok 
+   => extendSession
+      "REDIRECT"
+      cat "/" username 
 
 
 CHANGE_MASTER_PW_CONF_PAGE = """

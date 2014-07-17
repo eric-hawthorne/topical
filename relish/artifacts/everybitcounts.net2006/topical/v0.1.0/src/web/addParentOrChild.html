@@ -15,7 +15,6 @@
   <input type="hidden" name="next" value="linkExisting" />
   <input type="hidden" name="rel" value="{{.rel}}" />
   <input type="hidden" name="topic" value="{{.url}}" />
-    <input type="hidden" name="tok" value="{{.tok}}" />	
   <table>
 	  <tr>
 		<td>
@@ -40,8 +39,7 @@
   <form action="linkNewTopicAction" method="post">
 	<input type="hidden" name="linkType" value="{{.rel}}" />
 
-	<input type="hidden" name="topic" value="{{.url}}" />
-    <input type="hidden" name="tok" value="{{.tok}}" />		
+	<input type="hidden" name="topic" value="{{.url}}" />	
 	<table>
 	  <tr>
 		<td>

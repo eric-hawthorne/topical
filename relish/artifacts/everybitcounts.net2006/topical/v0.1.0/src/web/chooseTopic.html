@@ -11,13 +11,11 @@
   {{$rel := .rel}}
  {{$linkSubtype := .linkSubtype}}
   {{$topic := .topic}}
-  {{$tok := .tok}}	
   <table>
   {{range .topics}}
     <tr>
 	  {{if eq $rel "none"}} 
       <form action="{{urlPath .}}" method="post">
-      <input type="hidden" name="tok" value="{{$tok}}" />		
 	  <td rowspan="2" style="vertical-align: middle">
 	  <input type="submit" value="display" />	      
 	  {{else}}		
@@ -26,7 +24,6 @@
       <input type="hidden" name="rel" value="{{$rel}}" />
       <input type="hidden" name="linkSubtype" value="{{$linkSubtype}}" />
       <input type="hidden" name="chosen" value="{{urlPath .}}" />
-      <input type="hidden" name="tok" value="{{$tok}}" />
       <td rowspan="2" style="vertical-align: middle">
       <input type="submit" value="link as {{$rel}}" />
       {{end}}
@@ -47,7 +44,6 @@
 <br/>
    <p>
   <form action="{{.topic}}" method="post">
-    <input type="hidden" name="tok" value="{{$tok}}" />	
 	<input type="submit" value="Cancel" />
 	</form>
    </p>

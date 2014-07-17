@@ -8,7 +8,6 @@
 <body>
 <h1>Edit List of Children</h1>	    
 {{$topic := .topic}}
-{{$tok := .tok}}	
 {{$childLinks := .topic.childLinks}}
 {{$le := length $childLinks}} 
 {{$n := minus $le 1}}
@@ -19,7 +18,6 @@
   <form action="editChildrenAction" method="POST">
   <input type="hidden" name="topic" value="{{urlPath $topic}}" />	
   <input type="hidden" name="ordinal" value="{{$i}}" />
-  <input type="hidden" name="tok" value="{{$tok}}" />	
   <tr>
 	<td>{{$i}}</td>	
 	<td>{{$title}}</td>
@@ -32,7 +30,6 @@
 </table>
 <p style="text-align:right; width:95%;" >
 	<form action="{{urlPath $topic}}" method="get">
-    <input type="hidden" name="tok" value="{{$tok}}" />	
     <input type="submit" value=" Ok " />		
 	</form>
 </p>	

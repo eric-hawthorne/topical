@@ -12,6 +12,7 @@ import
    model
    strings
    datetime
+   http_srv
 
 
 Visit
@@ -45,6 +46,7 @@ Visit [<startTime] 0 N -- 0 1 model.User
 
 
 ADMIN_SESSION_TIMEOUT_MINUTES = 60
+ADMIN_SESSION_TIMEOUT = 3600  // Seconds
 
 
 isLoggedIn visit Visit > Bool
@@ -141,25 +143,28 @@ ensureHavePermission tok String permissionType String resource model.Resource
 ensureLoggedIn token String back String
 > 
    visit Visit 
+   loggedIn Bool
    backUrl String 
 """
  TODO Should be ?Visit above
  Ensures that the token identifies an unexpired and logged in session.
- If not, returns a nil Visit and a back url and sets error details.
- Response should be to continue if the returned Visit is non-nil,
- otherwise to display the back url passing the error info.
+ If not, returns loggedIn = false and a back url.
+ If visit exists but is not (or no longer) logged in, an error message
+ is set in the visit.
+ Response should be to continue if loggedIn is true,
+ otherwise to redirect to the back url (usually the login page).
 """
    backUrl = back
-   if exists token
-      visit = summon token
-      if not isLoggedIn visit
-         setError visit "Your login session has expired."
-         backUrl = cat backUrl "?tok=" token
-      elif not visit.user
-         setError visit "You must log in as a topical user."   
-         backUrl = cat backUrl "?token=" token
-      else
-         visit.lastRequestTime = now "UTC"
+   if token
+      if exists token
+         visit = summon token
+         if not isLoggedIn visit
+            setError visit "Your login session has expired."
+         elif not visit.user
+            setError visit "You must log in as a topical user."   
+         else
+            loggedIn = true
+            visit.lastRequestTime = now "UTC"
 
 
 
@@ -209,12 +214,24 @@ nextToken t Time > String
       c = context "tokenCounter"
    else
       c = 1     
-      nc = plus c 1
-      if gt nc 999999999
-         nc = 1
+   nc = plus c 1
+   if gt nc 999999999
+      nc = 1
    contextPut nc "tokenCounter"
 
    => replace
          base64Hash cat c "|" (format t "2006-01-02T15:04:05.999999999Z07:00")
          "="
          ""
+
+
+session request http_srv.Request > token String
+"""
+ Return the session token string, or the empty string "" if no session cookie was found.
+ Does not validate that it is a valid current session token.
+"""
+   sessionCookie err = cookie request "SESS"
+   if err
+      token = ""
+   else 
+      token = value sessionCookie

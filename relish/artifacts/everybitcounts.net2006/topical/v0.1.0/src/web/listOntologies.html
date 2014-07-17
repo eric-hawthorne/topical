@@ -6,13 +6,12 @@
        href="/styles/default.css" />	
 </head>
 <body>
-{{$tok := .tok}}
 <h1>Topical Ontologies - {{.username}}</h1>
 <table>	    
 {{range .ontologies}} 
 	<tr>
 		<td>
-		<a href="{{.urlPathComponent}}?tok={{$tok}}">{{.name}}</a>	
+		<a href="{{.urlPathComponent}}">{{.name}}</a>	
 		</td>
 		<td>
 		{{.description}}	
@@ -32,7 +31,6 @@
 <table>
 	<form action="/createOntology" method="POST">
 	<input type="hidden" name="username" value="{{.username}}" />
-	<input type="hidden" name="tok" value="{{$tok}}" />	
 	<tr>
 		<td>
 			Ontology Name:

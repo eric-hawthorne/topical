@@ -12,10 +12,28 @@ import
    strings
 
 
+errPage extendSessionHeader String message String buttonLabel String backUrl String 
+> 
+   String
+   String 
+   Map
+"""
+ Returns instructions for displaying an error message on an error page.
+"""
+   => extendSessionHeader
+      "err.html"
+      {
+         "errorMessage"   => message
+         "backButtonName" => buttonLabel      
+         "backUrlPath"    => backUrl
+      }String > String
+
+
 errPage message String buttonLabel String backUrl String 
 > 
    String 
    Map
+   Any
 """
  Returns instructions for displaying an error message on an error page.
 """
@@ -25,9 +43,10 @@ errPage message String buttonLabel String backUrl String
          "backButtonName" => buttonLabel      
          "backUrlPath"    => backUrl
       }String > String
+      nil
 
 
-errf preamble String name String err String > String String
+errf preamble String name String err String > String String Any
 """
  Return an html formatted error message as the second argument, and "HTML" as the first argument.
  This variant takes 3 arguments, a message, a name of some object, and the error message that was 
@@ -48,9 +67,10 @@ errf preamble String name String err String > String String
            preamble
            name
            err
+      nil
 
 
-errf preamble String err String > String String
+errf preamble String err String > String String Any
 """
  Return an html formatted error message as the second argument, and "HTML" as the first argument.
  This variant takes 3 arguments, a message, a name of some object, and the error message that was 
@@ -70,9 +90,10 @@ errf preamble String err String > String String
 """
            preamble
            err
+      nil
 
 
-errf err String > String String
+errf err String > String String Any
 """
  Return an html formatted error message as the second argument, and "HTML" as the first argument.
  This variant takes 3 arguments, a message, a name of some object, and the error message that was 
@@ -91,6 +112,7 @@ errf err String > String String
 </html>
 """
            err
+      nil
 
 
 urlSanitize s String > String
