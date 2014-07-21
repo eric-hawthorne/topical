@@ -318,7 +318,7 @@ createAction request http_srv.Request ontologyUrlPath String rootTopicTitle Stri
 
    => extendSession
       "REDIRECT"
-      cat topicUrlPath "?tok=" tok
+      topicUrlPath
 
 
 addParent request http_srv.Request topic String > String String Any
@@ -489,7 +489,7 @@ linkNewTopicAction request http_srv.Request linkType String linkSubtype String t
       => errPage extendSession
                  "Error: New topic must be given a title." 
                  "Ok"       
-                 cat topic "?tok=" tok
+                 topic 
 
    if not exists topic
       => errPage extendSession
@@ -503,7 +503,7 @@ linkNewTopicAction request http_srv.Request linkType String linkSubtype String t
    if err
       => extendSession
          "REDIRECT" 
-         cat "/?next=" topic "&tok=" tok
+         cat "/?next=" topic 
 
    newTopic = model.Topic
    newTopic.title = title
