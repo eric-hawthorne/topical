@@ -734,7 +734,7 @@ saveAndRenameTopicAction request http_srv.Request topic String content String ne
    if not exists topic
       slashPos = lastIndex topic "/"
       ontologyPath = slice topic 0 slashPos
-      editedTopicUrlPath = cat ontologyPath (urlSanitize newTitle)
+      editedTopicUrlPath = cat ontologyPath "/" (urlSanitize newTitle)
 
       if exists editedTopicUrlPath  // already renamed - nothing to do
          => extendSession
