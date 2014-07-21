@@ -730,11 +730,12 @@ saveAndRenameTopicAction request http_srv.Request topic String content String ne
          "REDIRECT"
          loginPage   
    extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
-
-   newUrlPathComponent = urlSanitize newTitle
-   editedTopicUrlPath = urlPath editedTopic
    
    if not exists topic
+      slashPos = lastIndex topic "/"
+      ontologyPath = slice topic 0 slashPos
+      editedTopicUrlPath = cat ontologyPath (urlSanitize newTitle)
+
       if exists editedTopicUrlPath  // already renamed - nothing to do
          => extendSession
             "REDIRECT"
@@ -756,8 +757,8 @@ saveAndRenameTopicAction request http_srv.Request topic String content String ne
    newTitle = stripNbsps newTitle
    editedTopic.content = content
    editedTopic.title = newTitle
-   editedTopic.urlPathComponent = newUrlPathComponent
-   editedTopicUrlPath = urlPath editedTopic
+   editedTopic.urlPathComponent = urlSanitize newTitle
+   editedTopicUrlPath = urlPath editedTopic   
    rename topic editedTopicUrlPath
    => extendSession
       "REDIRECT"
