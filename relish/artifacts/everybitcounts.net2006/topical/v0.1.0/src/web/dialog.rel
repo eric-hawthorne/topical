@@ -342,7 +342,7 @@ addParent request http_srv.Request topic String > String String Any
       => errPage extendSession
                  fill "Error: Topic '%s' not found." topic
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    childTopic = summon topic
    => extendSession
       "addParentOrChild.html"
@@ -370,7 +370,7 @@ addChild request http_srv.Request topic String > String String Any
       => errPage extendSession
                  fill "Error: Topic '%s' not found." topic     
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    parentTopic = summon topic
    => extendSession
       "addParentOrChild.html"
@@ -397,7 +397,7 @@ addTo request http_srv.Request topic String > String String Any
    if not exists topic
       => errPage fill "Error: Topic '%s' not found." topic
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    fromTopic = summon topic
    => extendSession
       "addToOrFrom.html"
@@ -426,7 +426,7 @@ addFrom request http_srv.Request topic String > String String Any
       => errPage extendSession
                  fill "Error: Topic '%s' not found." topic
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    toTopic = summon topic
    => extendSession
       "addToOrFrom.html"
@@ -454,7 +454,7 @@ addSibling request http_srv.Request topic String > String String Any
       => errPage extendSession
                  fill "Error: Topic '%s' not found." topic
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    currentChildTopic = summon topic
    => extendSession
       "addSibling.html"
@@ -495,7 +495,7 @@ linkNewTopicAction request http_srv.Request linkType String linkSubtype String t
       => errPage extendSession
                  fill "Error: Topic '%s' not found." topic
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    fromTopic = summon topic
    fromLevel = fromTopic.level
 
@@ -629,12 +629,12 @@ linkExisting request http_srv.Request topic String chosen String rel String link
       => errPage extendSession
                  fill "Error: Topic '%s' not found." topic
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    if not exists chosen
       => errPage extendSession
                  fill "Error: Topic '%s' not found." chosen
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    fromTopic = summon topic
    chosenTopic = summon chosen
 
@@ -704,7 +704,7 @@ saveTopicAction request http_srv.Request topic String content String > String St
       => errPage extendSession
                  fill "Error: Topic '%s' not found." topic
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    editedTopic = summon topic
    content = stripNbsps content
    editedTopic.content = content
@@ -731,11 +731,19 @@ saveAndRenameTopicAction request http_srv.Request topic String content String ne
          loginPage   
    extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
 
+   newUrlPathComponent = urlSanitize newTitle
+   editedTopicUrlPath = urlPath editedTopic
+   
    if not exists topic
-      => errPage extendSession
-                 fill "Error: Topic '%s' not found." topic
-                 "Ok"       
-                 "/"
+      if exists editedTopicUrlPath  // already renamed - nothing to do
+         => extendSession
+            "REDIRECT"
+            editedTopicUrlPath      
+      else
+         => errPage extendSession
+                    fill "Error: Topic '%s' not found." topic
+                    "Ok"       
+                    cat "/" visit.user.name
    editedTopic = summon topic
 
    visit err = ensureHavePermission tok "edit" editedTopic.ontology
@@ -748,7 +756,7 @@ saveAndRenameTopicAction request http_srv.Request topic String content String ne
    newTitle = stripNbsps newTitle
    editedTopic.content = content
    editedTopic.title = newTitle
-   editedTopic.urlPathComponent = urlSanitize newTitle
+   editedTopic.urlPathComponent = newUrlPathComponent
    editedTopicUrlPath = urlPath editedTopic
    rename topic editedTopicUrlPath
    => extendSession
@@ -776,7 +784,7 @@ topicDelete request http_srv.Request topic String > String String Any
       => errPage extendSession
                  fill "Error: Topic '%s' not found." topic
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    topicToDelete = summon topic
    => extendSession
       "deleteTopic.html"
@@ -811,7 +819,7 @@ topicDeleteAction request http_srv.Request topic String action String > String S
       => errPage extendSession
                  fill "Error: Topic '%s' not found." topic
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    topicToDelete = summon topic
    ontology = topicToDelete.ontology
    extricate topicToDelete
@@ -842,7 +850,7 @@ editChildren request http_srv.Request topic String > String String Any
       => errPage extendSession
                  fill "Error: Topic '%s' not found." topic
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    t = summon topic
    => extendSession
       "editChildren.html"
@@ -873,7 +881,7 @@ editChildrenAction request http_srv.Request topic String ordinal Int action Stri
       => errPage extendSession
                  fill "Error: Topic '%s' not found." topic
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    tpc = summon topic
    if eq action " ^ " 
       swap tpc.childLinks ordinal (minus ordinal 1)
@@ -911,7 +919,7 @@ graph request http_srv.Request topic String > String String Any
       => errPage extendSession
                  fill "Error: Topic '%s' not found." topic
                  "Ok"       
-                 "/"
+                 cat "/" visit.user.name
    tpc = summon topic
 
    visit err = ensureHavePermission tok "view" tpc.ontology 
