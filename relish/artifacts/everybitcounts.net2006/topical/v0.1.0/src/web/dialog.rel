@@ -680,7 +680,7 @@ linkExisting request http_srv.Request topic String chosen String rel String link
       topic
 
 
-saveTopicAction request http_srv.Request topic String content String > String String Int
+saveTopicAction request http_srv.Request topic String content String > String String Any
 """
  Saves edited content of the topic.
 
@@ -711,7 +711,7 @@ saveTopicAction request http_srv.Request topic String content String > String St
    => extendSession "HTTP CODE" 200
 
 
-saveAndRenameTopicAction request http_srv.Request topic String content String newTitle String > String String String
+saveAndRenameTopicAction request http_srv.Request topic String content String newTitle String > String String Any
 """
  Saves edited content of the topic, and also renames the topic.
 
@@ -785,7 +785,7 @@ topicDelete request http_srv.Request topic String > String String Any
       }String > Any
 
 
-topicDeleteAction request http_srv.Request topic String action String > String String String
+topicDeleteAction request http_srv.Request topic String action String > String String Any
 """
  Actually delete a topic, unless cancelled, in which case redirect to display the topic.
  If deletes the topic, redirects to display the root topic of the ontology.
