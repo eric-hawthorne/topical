@@ -585,15 +585,15 @@ min a Int b Int > Int
    => a
 
 
-rightShift topicRow [] model.Topic user model.User focusTopicX Int
+rightShift topicRow [] model.Topic user model.User focusTopicx Int
 """
  If a row is shifted way over to the left of canvas, shift it closer to the 
  x position of the focus topic.
 """
    last = minus (len topicRow) 1
    lastTopic = topicRow[last]
-   if lt lastTopic.x (minus focustopic.x X_MIN)
-      xDelta = minus focusTopic.x lastTopic.x
+   if lt lastTopic.x (minus focustopicx X_MIN)
+      xDelta = minus focusTopicx lastTopic.x
       for topic in topicRow
          pos = position topic user      
          pos.x = plus pos.x xDelta 
