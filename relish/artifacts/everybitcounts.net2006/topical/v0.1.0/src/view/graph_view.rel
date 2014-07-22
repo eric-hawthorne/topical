@@ -448,6 +448,565 @@ setGraphPositions
 
          // print child.title "offset" offset "xi" xi
 
+         if false  // gt ngc 10
+
+            // Lay out Grandchildren from one child
+            ygc = plus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
+
+            for gcl in child.childLinks
+               grandChild = gcl.child
+               pos = position grandChild user
+               hasGreatGrandChild = gt 0 (len grandChild.childLinks)
+
+        
+      /////////////////////////
+
+      if true  // lte ngc 10
+
+         // Lay out all Grandchildren
+
+         yi = plus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
+         yAdjust = times Y_ADJUST_INCREMENT (div ngc 4)
+         yi = plus yi yAdjust
+
+         if ngc
+            xi = X_MIN
+            isLeftmost = true
+            isOdd = true
+            for grandChild in grandChildren
+               pos = position grandChild user
+
+               offset = times
+                           min (len grandChild.title) MAX_TITLE_CHARS_DISPLAYED
+                           minus CHAR_WIDTH GRAND_SQUEEZE
+
+               if isLeftmost
+                  xi = plus xi (div offset 2)             
+                  isLeftmost = false
+               else
+                  xi = plus xi 
+                            div (plus offset prevOffset) 2
+               prevOffset = offset
+
+               if isOdd  // EGH new
+                  yi = minus yi Y_ADJUST_INCREMENT
+
+               pos.x = xi
+               pos.y = yi      
+
+               yMaxUsed = yi   
+
+               if isOdd  // EGH new
+                  yi = plus yi Y_ADJUST_INCREMENT
+                  isOdd = false
+               else
+                  isOdd = true    
+
+
+            // Lay out Great Grandchildren
+
+            yi = plus yi 
+                      plus MIN_Y_SEPARATION (times 2 Y_SEP_GROWTH)
+            yAdjust = times Y_ADJUST_INCREMENT (div nggc 2)
+            yi = plus yi yAdjust
+
+            if nggc
+               xi = X_MIN
+               isLeftmost = true
+               isOdd = true
+               for greatGrandChild in greatGrandChildren
+                  pos = position greatGrandChild user
+
+                  offset = times
+                              min (len greatGrandChild.title) MAX_TITLE_CHARS_DISPLAYED
+                              minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
+
+                  if isLeftmost
+                     xi = plus xi (div offset 2)             
+                     isLeftmost = false
+                  else
+                     xi = plus xi 
+                               div (plus offset prevOffset) 2
+                  prevOffset = offset
+
+                  if isOdd  // EGH new
+                     yi = minus yi Y_ADJUST_INCREMENT
+                  
+                  pos.x = xi
+                  pos.y = yi  
+
+                  yMaxUsed = yi 
+
+                  if isOdd  // EGH new
+                     yi = plus yi Y_ADJUST_INCREMENT
+                     isOdd = false
+                  else
+                     isOdd = true                       
+
+      yMaxUsed = plus yMaxUsed 50
+
+      if gt yMaxUsed height
+         height = yMaxUsed 
+
+      if nggp
+         distribute greatGrandParents user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
+         rightShift greatGrandParents user focusPosition.x      
+      if ngp
+         distribute grandParents user (minus CHAR_WIDTH GRAND_SQUEEZE) width (gt nggp 0)
+         rightShift grandParents user focusPosition.x      
+      if np
+         if gt wgp wp
+            distribute parents 
+                       user 
+                       CHAR_WIDTH 
+                       minus width (times 2 X_MIN) 
+                       gt ngp 0   
+         else 
+            distribute parents user CHAR_WIDTH width (gt ngp 0)   
+         rightShift parents user focusPosition.x      
+      if nggc
+         distribute greatGrandChildren user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
+         rightShift greatGrandChildren user focusPosition.x       
+      if ngc
+         distribute grandChildren user (minus CHAR_WIDTH GRAND_SQUEEZE) width (gt nggc 0)
+         rightShift grandChildren user focusPosition.x       
+      if nc
+         if gt wgc wc
+            distribute children
+                       user 
+                       CHAR_WIDTH 
+                       minus width (times 2 X_MIN) 
+                       (gt ngc 0)
+         else
+            distribute children user CHAR_WIDTH width (gt ngc 0)
+         rightShift children user focusPosition.x
+
+
+
+
+
+
+setGraphPositionsOld
+   topic model.Topic 
+   user model.User
+>
+   width Int
+   height Int
+"""
+ Computes positions for topic nodes in a node-and-edge topic graph centred on 
+ the specified topic.
+ The positions are represented as position objects related to the user and each topic.
+ Returns the required width and height of the canvas for the graph.
+""" 
+   wa wp wgp wggp = ancestorsWidth topic
+   wd wc wgc wggc = descendantsWidth topic
+   width = plus
+              max wa wd
+              times 2 X_MIN
+
+   height = plus 
+               times 2 Y_MIN
+               times 
+                  2
+                  plus 
+                     times MIN_Y_SEPARATION 3
+                     times Y_SEP_GROWTH 3
+                       
+   x = div (times width 2) 5  // A little to the left of centre.
+
+   numLayers = 0
+
+   np = len topic.parentLinks
+   ngp = 0 
+   nggp = 0
+
+   if np
+      numLayers = 1
+
+      // Collect Grandparents
+      grandParents = []model.Topic
+      for parentLink in topic.parentLinks
+         parent = parentLink.parent
+         for gpLink in parent.parentLinks
+            grandParents += gpLink.parent
+
+      ngp = len grandParents
+
+      if ngp
+         numLayers = 2
+
+         // Collect Great Grandparents
+         greatGrandParents = []model.Topic
+         for grandparent in grandParents
+            for ggpLink in grandparent.parentLinks
+               greatGrandParents += ggpLink.parent
+
+         nggp = len greatGrandParents
+         if nggp
+            numLayers = 3
+
+   nc = len topic.childLinks
+   ngc = 0
+   nggc = 0
+
+   if nc
+      numLayers = plus numLayers 1
+
+      // Collect Grandchildren
+      grandChildren = []model.Topic
+      for childLink in topic.childLinks
+         child = childLink.child
+         for gpLink in child.childLinks
+            grandChildren += gpLink.child
+
+      ngc = len grandChildren
+
+      if ngc
+         numLayers = plus numLayers 1      
+         
+         // Collect Great Grandchildren
+         greatGrandChildren = []model.Topic
+         for grandchild in grandChildren
+            for ggcLink in grandchild.childLinks
+               greatGrandChildren += ggcLink.child
+
+         nggc = len greatGrandChildren
+         if nggc
+            numLayers = plus numLayers 1
+
+   height = plus 
+               times 2 Y_MIN
+               plus 
+                  times MIN_Y_SEPARATION numLayers
+                  times Y_SEP_GROWTH numLayers
+
+   if np
+      if ngp
+         if nggp
+            if nc
+               if ngc
+                  if nggc  // All 7 layers
+                     y = div height 2  
+                  else  // 6 layers - bottom 1 missing
+                     y = div (times 2 height) 3
+               else  // 5 layers - bottom 2 missing
+                  y = div (times 4 height) 5
+            else  // 4 layers - topic is bottom
+               y = minus height Y_MIN
+         else
+            if nc
+               if ngc
+                  if nggc  //  6 layers
+                     y = div (times 1 height) 3
+                  else  // 5 layers - bottom 1 missing
+                     y = div height 2  
+               else  // 4 layers - bottom 2 missing
+                  y = div (times 3 height) 4
+            else  // 3 layers - topic is bottom
+               y = minus height Y_MIN    
+      else              
+         if nc
+            if ngc
+               if nggc  //  5 layers
+                  y = div (times 1 height) 5
+               else  // 4 layers - bottom 1 missing
+                  y = div height 4  
+            else  // 3 layers - bottom 2 missing
+               y = div (times 3 height) 4
+         else  // 2 layers - topic is bottom
+            y = minus height Y_MIN    
+   else              
+      if nc
+         if ngc
+            if nggc  //  4 layers
+               y = Y_MIN
+            else  // 3 layers - bottom 1 missing
+               y = div height 4  
+         else  // 2 layers - bottom 2 missing
+            y = div height 3
+      else  // 1 layers - topic is bottom
+         y = div height 2            
+
+   parents = [
+                for parentLink in topic.parentLinks
+                   parentLink.parent
+             ]model.Topic
+
+   children = [
+                 for childLink in topic.childLinks
+                    childLink.child
+              ]model.Topic
+
+
+   pos = position topic user
+   pos.x = x
+   pos.y = y
+
+   focusPosition = pos  // Save the position of the focus topic
+   focusTopicWidth = times (len topic.title) CHAR_WIDTH
+
+
+   // Lay out related tos
+
+   xMaxUsed = X_MIN  // These will define how much the focus topic has to be moved
+   yMaxUsed = Y_MIN  // to make remove for related topics
+
+   nt = len topic.toLinks
+   yi = plus (times 3 CHAR_HEIGHT) (minus y MIN_Y_SEPARATION)
+   yFirstRelated = yi
+
+   if nt
+      xi = X_MIN
+      isLeftmost = true
+      for toLink in topic.toLinks
+         related = toLink.to
+         pos = position related user
+
+         offset = times
+                     min (len related.title) MAX_TITLE_CHARS_DISPLAYED
+                     CHAR_WIDTH
+
+         if isLeftmost
+            xi = plus xi (div offset 3)
+            // print related.title xi 
+            isLeftmost = false 
+
+         pos.x = xi
+         pos.y = yi         
+
+         xMaxUsed = plus xi offset
+         yMaxUsed = plus yi CHAR_HEIGHT
+
+         xi = plus xi 50
+         yi = plus yi CHAR_HEIGHT
+
+   // Lay out related froms
+
+   nf = len topic.fromLinks
+
+   if nf
+      xi = X_MIN
+      isLeftmost = true
+      for fromLink in topic.fromLinks
+         related = fromLink.from
+         pos = position related user      
+
+         offset = times
+                     min (len related.title) MAX_TITLE_CHARS_DISPLAYED
+                     CHAR_WIDTH
+
+         if isLeftmost
+            xi = plus xi (div offset 2)
+            // print related.title xi 
+            isLeftmost = false 
+
+         pos.x = xi
+         pos.y = yi         
+
+         xMaxUsed = max xMaxUsed (plus xi offset)
+         yMaxUsed = plus yi CHAR_HEIGHT
+
+         xi = plus xi 50
+         yi = plus yi CHAR_HEIGHT
+
+   xMaxUsed = plus xMaxUsed 50
+   yMaxUsed = plus yMaxUsed 50
+
+   if lt focusPosition.x xMaxUsed
+      focusPosition.x = xMaxUsed
+      x = xMaxUsed
+      // print "oldWidth" width
+      newWidth = plus xMaxUsed focusTopicWidth
+      if lt width newWidth
+         width = newWidth
+      // print x 
+      // print width
+   
+   yRelatedOffset = 0                  
+   yChildren = plus y MIN_Y_SEPARATION
+   if lt yMaxUsed (minus yChildren 20)
+      yRelatedOffset = minus (minus yChildren 20) yMaxUsed
+
+   if gt (plus yRelatedOffset yFirstRelated) y
+      yRelatedOffset = minus y yFirstRelated
+
+   if gt yRelatedOffset 0
+      for toLink in topic.toLinks
+         for pos in toLink.to.positions
+            if eq pos.user user
+               pos.y = plus pos.y yRelatedOffset
+               break
+
+      for fromLink in topic.fromLinks
+         for pos in fromLink.from.positions
+            if eq pos.user user
+               pos.y = plus pos.y yRelatedOffset
+               break
+
+
+   // Lay out Parents
+
+   yi = minus y MIN_Y_SEPARATION 
+ 
+   // EGH not doing this any more because alternating y bumps up and down
+   // yAdjust = times Y_ADJUST_INCREMENT (div np 2)
+   // yi = minus yi yAdjust
+
+   prevOffset = 0
+
+   if np
+      xi = X_MIN
+      isLeftmost = true
+      isOdd = true
+      for parent in parents
+         pos = position parent user
+
+         offset = times
+                     min (len parent.title) MAX_TITLE_CHARS_DISPLAYED
+                     CHAR_WIDTH
+
+         if isLeftmost
+            xi = plus xi (div offset 2)
+            // print parent.title xi 
+            isLeftmost = false 
+         else
+            xi = plus xi 
+                      div (plus offset prevOffset) 2
+         prevOffset = offset
+
+
+         if isOdd  // EGH new
+            yi = plus yi Y_ADJUST_INCREMENT
+         pos.x = xi
+         pos.y = yi         
+         if isOdd  // EGH new
+            yi = minus yi Y_ADJUST_INCREMENT
+            isOdd = false
+         else
+            isOdd = true   
+
+
+      // Lay out Grandparents
+
+      yi = minus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
+
+      // EGH not doing this any more because alternating y bumps up and down      
+      // yAdjust = times Y_ADJUST_INCREMENT (div ngp 4)
+      // yi = minus yi yAdjust
+
+      if ngp
+         xi = X_MIN
+         isLeftmost = true
+         isOdd = true         
+         for grandParent in grandParents
+            pos = position grandParent user
+
+            offset = times
+                        min (len grandParent.title) MAX_TITLE_CHARS_DISPLAYED
+                        minus CHAR_WIDTH GRAND_SQUEEZE
+
+            if isLeftmost
+               xi = plus xi (div offset 2)
+               isLeftmost = false
+            else
+               xi = plus xi 
+                         div (plus offset prevOffset) 2
+            prevOffset = offset
+
+            if isOdd  // EGH new
+               yi = plus yi Y_ADJUST_INCREMENT
+
+            pos.x = xi
+            pos.y = yi         
+            if isOdd  // EGH new
+               yi = minus yi Y_ADJUST_INCREMENT
+               isOdd = false
+            else
+               isOdd = true   
+
+
+         // Lay out Great Grandparents
+
+         yi = minus yi 
+                    plus MIN_Y_SEPARATION (times 2 Y_SEP_GROWTH)
+         // yAdjust = times Y_ADJUST_INCREMENT (div nggp 2)
+         // yi = minus yi yAdjust
+
+         if nggp
+            xi = X_MIN
+            isLeftmost = true
+            isOdd = true
+            for greatGrandParent in greatGrandParents
+               pos = position greatGrandParent user
+
+               offset = times
+                           min (len greatGrandParent.title) MAX_TITLE_CHARS_DISPLAYED
+                           minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
+
+               if isLeftmost
+                  xi = plus xi (div offset 2)
+                  isLeftmost = false
+               else
+                  xi = plus xi 
+                            div (plus offset prevOffset) 2
+               prevOffset = offset
+
+               if isOdd  // EGH new
+                  yi = plus yi Y_ADJUST_INCREMENT
+               pos.x = xi
+               pos.y = yi      
+               if isOdd  // EGH new
+                  yi = minus yi Y_ADJUST_INCREMENT
+                  isOdd = false
+               else
+                  isOdd = true                      
+
+   // Lay out Children
+
+   yi = plus y MIN_Y_SEPARATION 
+
+   if gt yMaxUsed yi
+      yi = yMaxUsed
+   
+   // EGH not doing this any more because alternating y bumps up and down                  
+   // yAdjust = times Y_ADJUST_INCREMENT (div nc 2)
+   // yi = minus yi yAdjust
+
+   if nc
+      xi = X_MIN
+      isLeftmost = true
+      isOdd = true
+      for child in children
+         pos = position child user
+
+         offset = times
+                     min (len child.title) MAX_TITLE_CHARS_DISPLAYED
+                     CHAR_WIDTH
+
+         if isLeftmost
+            xi = plus xi (div offset 2)      
+            // print child.title xi       
+            isLeftmost = false
+         else
+            xi = plus xi 
+                      div (plus offset prevOffset) 2
+         prevOffset = offset
+
+         if isOdd  // EGH new
+            yi = minus yi Y_ADJUST_INCREMENT
+         pos.x = xi
+         pos.y = yi    
+
+         yMaxUsed = yi  
+
+         if isOdd  // EGH new
+            yi = plus yi Y_ADJUST_INCREMENT
+            isOdd = false
+         else
+            isOdd = true   
+
+         // print child.title "offset" offset "xi" xi
+
 
       // Lay out Grandchildren
 
@@ -535,10 +1094,10 @@ setGraphPositions
       height = yMaxUsed 
 
    if nggp
-      distribute greatGrandParents user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width
+      distribute greatGrandParents user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
       rightShift greatGrandParents user focusPosition.x      
    if ngp
-      distribute grandParents user (minus CHAR_WIDTH GRAND_SQUEEZE) width
+      distribute grandParents user (minus CHAR_WIDTH GRAND_SQUEEZE) width (gt nggp 0)
       rightShift grandParents user focusPosition.x      
    if np
       if gt wgp wp
@@ -546,14 +1105,15 @@ setGraphPositions
                     user 
                     CHAR_WIDTH 
                     minus width (times 2 X_MIN) 
+                    gt ngp 0   
       else 
-         distribute parents user CHAR_WIDTH width    
+         distribute parents user CHAR_WIDTH width (gt ngp 0)   
       rightShift parents user focusPosition.x      
    if nggc
-      distribute greatGrandChildren user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width
+      distribute greatGrandChildren user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
       rightShift greatGrandChildren user focusPosition.x       
    if ngc
-      distribute grandChildren user (minus CHAR_WIDTH GRAND_SQUEEZE) width
+      distribute grandChildren user (minus CHAR_WIDTH GRAND_SQUEEZE) width (gt nggc 0)
       rightShift grandChildren user focusPosition.x       
    if nc
       if gt wgc wc
@@ -561,9 +1121,23 @@ setGraphPositions
                     user 
                     CHAR_WIDTH 
                     minus width (times 2 X_MIN) 
+                    (gt ngc 0)
       else
-         distribute children user CHAR_WIDTH width
+         distribute children user CHAR_WIDTH width (gt ngc 0)
       rightShift children user focusPosition.x
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -600,15 +1174,19 @@ rightShift topicRow [] model.Topic user model.User focusTopicx Int
          pos.x = plus pos.x xDelta 
 
 
-MAX_DISTRIBUTION_TOTAL_WIDTH = 1500
-MAX_DISTRIBUTION_WIDTH_INCREMENT = 300
+MAX_DISTRIBUTION_TOTAL_WIDTH = 2000
+MAX_DISTRIBUTION_WIDTH_INCREMENT = 400
 
 
-distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int
+distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int hasDescendents Bool
 """
  Distribute extra horizontal space along a row of topics in the graph.
 """
    availableWidth = min MAX_DISTRIBUTION_TOTAL_WIDTH canvasWidth
+   if hasDescendents 
+      maxWidthIncrement = 1000
+   else
+      maxWidthIncrement = MAX_DISTRIBUTION_WIDTH_INCREMENT
 
    last = minus (len topicRow) 1
    nGaps = last   
@@ -625,14 +1203,14 @@ distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int
 
    freeWidth = minus availableWidth usedWidth
    if gt freeWidth 0     
-      totalGapFillAllowed = times MAX_DISTRIBUTION_WIDTH_INCREMENT nGaps
+      totalGapFillAllowed = times maxWidthIncrement nGaps
       fillDelta = minus freeWidth totalGapFillAllowed
       if lt fillDelta 0
          leftMargin = 0
       else
          leftMargin = div fillDelta 2
  
-      widthIncrement = min MAX_DISTRIBUTION_WIDTH_INCREMENT (div freeWidth nGaps)
+      widthIncrement = min maxWidthIncrement (div freeWidth nGaps)
 
       xDelta = leftMargin
       for topic in topicRow
