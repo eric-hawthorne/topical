@@ -559,6 +559,13 @@ setGraphPositions
       else
          distribute children user CHAR_WIDTH width
 
+   rightShift greatGrandParents user topic.x
+   rightShift grandParents user topic.x
+   rightShift parents user topic.x
+   rightShift children user topic.x
+   rightShift grandChildren user topic.x   
+   rightShift greatGrandChildren user topic.x 
+
 
 max a Int b Int > Int
 """
@@ -576,6 +583,20 @@ min a Int b Int > Int
    if lt b a
       => b
    => a
+
+
+rightShift topicRow [] model.Topic user model.User focusTopicX Int
+"""
+ If a row is shifted way over to the left of canvas, shift it closer to the 
+ x position of the focus topic.
+"""
+   last = minus (len topicRow) 1
+   lastTopic = topicRow[last]
+   if lt lastTopic.x (minus focustopic.x X_MIN)
+      xDelta = minus focusTopic.x lastTopic.x
+      for topic in topicRow
+         pos = position topic user      
+         pos.x = plus pos.x xDelta 
 
 
 MAX_DISTRIBUTION_TOTAL_WIDTH = 1500
