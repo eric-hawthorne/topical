@@ -23,7 +23,7 @@ CHAR_HEIGHT = 14
 MAX_TITLE_CHARS_DISPLAYED = 40
 X_MIN = 50
 Y_MIN = 50
-Y_ADJUST_INCREMENT = 12
+Y_ADJUST_INCREMENT = 6
 
 
 
@@ -332,7 +332,7 @@ setGraphPositions
       yi = minus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
 
       // EGH not doing this any more because alternating y bumps up and down      
-      // yAdjust = times Y_ADJUST_INCREMENT (div ngp 2)
+      // yAdjust = times Y_ADJUST_INCREMENT (div ngp 4)
       // yi = minus yi yAdjust
 
       if ngp
@@ -370,8 +370,8 @@ setGraphPositions
 
          yi = minus yi 
                     plus MIN_Y_SEPARATION (times 2 Y_SEP_GROWTH)
-         yAdjust = times Y_ADJUST_INCREMENT (div nggp 2)
-         yi = minus yi yAdjust
+         // yAdjust = times Y_ADJUST_INCREMENT (div nggp 2)
+         // yi = minus yi yAdjust
 
          if nggp
             xi = X_MIN
@@ -452,8 +452,8 @@ setGraphPositions
       // Lay out Grandchildren
 
       yi = plus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
-      yAdjust = times Y_ADJUST_INCREMENT (div ngc 2)
-      yi = minus yi yAdjust
+      yAdjust = times Y_ADJUST_INCREMENT (div ngc 4)
+      yi = plus yi yAdjust
 
       if ngc
          xi = X_MIN
@@ -494,7 +494,7 @@ setGraphPositions
          yi = plus yi 
                    plus MIN_Y_SEPARATION (times 2 Y_SEP_GROWTH)
          yAdjust = times Y_ADJUST_INCREMENT (div nggc 2)
-         yi = minus yi yAdjust
+         yi = plus yi yAdjust
 
          if nggc
             xi = X_MIN

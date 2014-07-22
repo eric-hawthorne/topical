@@ -15,9 +15,11 @@ import
    http_srv
 
 
-export ...args [] String > String Any
+export request http_srv.Request userName String ontologyUrlPath String > String String Any
 """
  Return a JSON representation of an ontology.
+
+ Was: export request http_srv.Request ...args [] String > String String Any
 
  /export/username/ontology_url_path
 
@@ -25,23 +27,43 @@ export ...args [] String > String Any
 
  Save the result as a text file. Not using content-disposition yet.
 """
+   tok = session request
+   visit loggedIn loginPage = ensureLoggedIn tok "/"
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
 
-   ontologyUrlPath = cat "/" args[0] "/" (urlPathPartEncode args[1] false)
+   if neq userName visit.user.name
+      => errPage extendSession
+                 fill "Error: Can't export ontology '%s' except as user %s." ontologyUrlPath userName
+                 "Ok"       
+                 cat "/" userName
+
+   ontologyUrlPath = cat "/" userName "/" (urlPathPartEncode ontologyUrlPath false)
 
    if not exists ontologyUrlPath
-      => errPage fill "Error: Ontology '%s' does not exist." ontologyUrlPath
+      => errPage extendSession
+                 fill "Error: Ontology '%s' does not exist." ontologyUrlPath
                  "Ok"       
-                 "/"
+                 cat "/" userName
 
    ontology = summon ontologyUrlPath
 
    json err = exportToJson ontology
    if err
-      => errPage fill "Error exporting to JSON: %s." err
+      => errPage extendSession
+                 fill "Error exporting to JSON: %s." err
                  "Ok"       
-                 "/"
+                 cat "/" userName
 
-   => "JSON PRE"
+   => extendSession
+      "JSON PRE"
       json
 
 

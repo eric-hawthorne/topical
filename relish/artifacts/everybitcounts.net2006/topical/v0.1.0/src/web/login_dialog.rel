@@ -21,7 +21,7 @@ loginAction
    ...kw {} String > String 
 > 
    String 
-   String
+   Any
    Any
 """
  Process a login or user signup dialog.
