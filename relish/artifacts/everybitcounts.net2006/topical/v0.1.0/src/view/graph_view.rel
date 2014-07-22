@@ -536,8 +536,10 @@ setGraphPositions
 
    if nggp
       distribute greatGrandParents user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width
+      rightShift greatGrandParents user focusPosition.x      
    if ngp
       distribute grandParents user (minus CHAR_WIDTH GRAND_SQUEEZE) width
+      rightShift grandParents user focusPosition.x      
    if np
       if gt wgp wp
          distribute parents 
@@ -545,11 +547,14 @@ setGraphPositions
                     CHAR_WIDTH 
                     minus width (times 2 X_MIN) 
       else 
-         distribute parents user CHAR_WIDTH width       
+         distribute parents user CHAR_WIDTH width    
+      rightShift parents user focusPosition.x      
    if nggc
       distribute greatGrandChildren user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width
+      rightShift greatGrandChildren user focusPosition.x       
    if ngc
       distribute grandChildren user (minus CHAR_WIDTH GRAND_SQUEEZE) width
+      rightShift grandChildren user focusPosition.x       
    if nc
       if gt wgc wc
          distribute children
@@ -558,13 +563,8 @@ setGraphPositions
                     minus width (times 2 X_MIN) 
       else
          distribute children user CHAR_WIDTH width
+      rightShift children user focusPosition.x
 
-   rightShift greatGrandParents user focusPosition.x
-   rightShift grandParents user focusPosition.x
-   rightShift parents user focusPosition.x
-   rightShift children user focusPosition.x
-   rightShift grandChildren user focusPosition.x   
-   rightShift greatGrandChildren user focusPosition.x 
 
 
 max a Int b Int > Int
