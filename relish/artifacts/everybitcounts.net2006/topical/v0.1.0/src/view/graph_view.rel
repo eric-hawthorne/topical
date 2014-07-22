@@ -592,8 +592,9 @@ rightShift topicRow [] model.Topic user model.User focusTopicx Int
 """
    last = minus (len topicRow) 1
    lastTopic = topicRow[last]
-   if lt lastTopic.x (minus focusTopicx X_MIN)
-      xDelta = minus focusTopicx lastTopic.x
+   lastPos = position lastTopic user    
+   if lt lastPos.x (minus focusTopicx X_MIN)
+      xDelta = minus focusTopicx lastPos.x
       for topic in topicRow
          pos = position topic user      
          pos.x = plus pos.x xDelta 
