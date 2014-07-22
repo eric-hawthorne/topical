@@ -610,7 +610,7 @@ distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int
       else
          leftMargin = div fillDelta 2
  
-      widthIncrement = min MAX_DISTRIBUTION_WIDFTH_INCREMENT (div freeWidth nGaps)
+      widthIncrement = min MAX_DISTRIBUTION_WIDTH_INCREMENT (div freeWidth nGaps)
 
       xDelta = leftMargin
       for topic in topicRow
