@@ -578,11 +578,16 @@ min a Int b Int > Int
    => a
 
 
+MAX_DISTRIBUTION_TOTAL_WIDTH = 1500
+MAX_DISTRIBUTION_WIDTH_INCREMENT = 300
+
 
 distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int
 """
  Distribute extra horizontal space along a row of topics in the graph.
 """
+   availableWidth = min MAX_DISTRIBUTION_TOTAL_WIDTH canvasWidth
+
    last = minus (len topicRow) 1
    nGaps = last   
    if not nGaps
@@ -596,14 +601,22 @@ distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int
    pos = position lastTopic user           
    usedWidth = plus pos.x (plus extra X_MIN)
 
-   freeWidth = minus canvasWidth usedWidth
-   if gt freeWidth 0  
-      widthIncrement = div freeWidth nGaps
-      xDelta = 0
-      for topic in topicRow[1:]
-         xDelta = plus xDelta widthIncrement
+   freeWidth = minus availableWidth usedWidth
+   if gt freeWidth 0     
+      totalGapFillAllowed = times MAX_DISTRIBUTION_WIDTH_INCREMENT nGaps
+      fillDelta = minus freeWidth totalGapFillAllowed
+      if lt fillDelta 0
+         leftMargin = 0
+      else
+         leftMargin = div fillDelta 2
+ 
+      widthIncrement = min MAX_DISTRIBUTION_WIDFTH_INCREMENT (div freeWidth nGaps)
+
+      xDelta = leftMargin
+      for topic in topicRow
          pos = position topic user      
          pos.x = plus pos.x xDelta
+         xDelta = plus xDelta widthIncrement         
 
 
 
