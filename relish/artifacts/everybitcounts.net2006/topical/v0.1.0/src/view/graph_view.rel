@@ -559,12 +559,12 @@ setGraphPositions
       else
          distribute children user CHAR_WIDTH width
 
-   rightShift greatGrandParents user topic.x
-   rightShift grandParents user topic.x
-   rightShift parents user topic.x
-   rightShift children user topic.x
-   rightShift grandChildren user topic.x   
-   rightShift greatGrandChildren user topic.x 
+   rightShift greatGrandParents user focusPosition.x
+   rightShift grandParents user focusPosition.x
+   rightShift parents user focusPosition.x
+   rightShift children user focusPosition.x
+   rightShift grandChildren user focusPosition.x   
+   rightShift greatGrandChildren user focusPosition.x 
 
 
 max a Int b Int > Int
