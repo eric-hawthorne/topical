@@ -151,9 +151,9 @@
 		        x: titleOffset
 		      });				
 
-		      titleText.on("click tap", function() {location.href="/graph?topic={{urlPath $to}}"});
+		      titleText.on("click tap", function() {location.href="/graph?topic={{encUrlPath $to}}"});
 
-		      titleArea.on("click tap", function() {location.href="/graph?topic={{urlPath $to}}"});
+		      titleArea.on("click tap", function() {location.href="/graph?topic={{encUrlPath $to}}"});
 		
 		      // add the shapes to the lineLayer
 		      titleLayer.add(titleArea);
@@ -222,9 +222,9 @@
 		        x: titleOffset
 		      });				
 
-		      titleText.on("click tap", function() {location.href="/graph?topic={{urlPath $from}}"});
+		      titleText.on("click tap", function() {location.href="/graph?topic={{encUrlPath $from}}"});
 		
-		      titleArea.on("click tap", function() {location.href="/graph?topic={{urlPath $from}}"});
+		      titleArea.on("click tap", function() {location.href="/graph?topic={{encUrlPath $from}}"});
 		
 		      // add the shapes to the lineLayer
 		      titleLayer.add(titleArea);
@@ -294,9 +294,9 @@
 		        x: titleOffset
 		      });				
 
-		      titleText.on("click tap", function() {location.href="/graph?topic={{urlPath $child}}"});
+		      titleText.on("click tap", function() {location.href="/graph?topic={{encUrlPath $child}}"});
 
-		      titleArea.on("click tap", function() {location.href="/graph?topic={{urlPath $child}}"});
+		      titleArea.on("click tap", function() {location.href="/graph?topic={{encUrlPath $child}}"});
 		
 		      // add the shapes to the lineLayer
 		      titleLayer.add(titleArea);
@@ -371,9 +371,9 @@
 			        x: titleOffset
 			      });				
 
-			      titleText.on("click tap", function() {location.href="/graph?topic={{urlPath $child}}"});
+			      titleText.on("click tap", function() {location.href="/graph?topic={{encUrlPath $child}}"});
 			
-			      titleArea.on("click tap", function() {location.href="/graph?topic={{urlPath $child}}"});
+			      titleArea.on("click tap", function() {location.href="/graph?topic={{encUrlPath $child}}"});
 				
 			      // add the shapes to the lineLayer
 			      titleLayer.add(titleArea);
@@ -455,9 +455,9 @@
 				        x: titleOffset
 				      });			
 
-				      titleText.on("click tap", function() {location.href="/graph?topic={{urlPath $child}}"});	
+				      titleText.on("click tap", function() {location.href="/graph?topic={{encUrlPath $child}}"});	
 				
-				      titleArea.on("click tap", function() {location.href="/graph?topic={{urlPath $child}}"});	
+				      titleArea.on("click tap", function() {location.href="/graph?topic={{encUrlPath $child}}"});	
 					
 				      // add the shapes to the lineLayer
 				      titleLayer.add(titleArea);
@@ -535,8 +535,8 @@
 		        x: titleOffset
 		      });			
 
-		      titleText.on("click tap", function() {location.href="/graph?topic={{urlPath $parent}}"});	
-		      titleArea.on("click tap", function() {location.href="/graph?topic={{urlPath $parent}}"});
+		      titleText.on("click tap", function() {location.href="/graph?topic={{encUrlPath $parent}}"});	
+		      titleArea.on("click tap", function() {location.href="/graph?topic={{encUrlPath $parent}}"});
 			
 		      // add the shapes to the lineLayer
 		      titleLayer.add(titleArea);
@@ -608,9 +608,9 @@
 			        x: titleOffset
 			      });			
 
-                  titleText.on("click tap", function() {location.href="/graph?topic={{urlPath $parent}}"});
+                  titleText.on("click tap", function() {location.href="/graph?topic={{encUrlPath $parent}}"});
 
-                  titleArea.on("click tap", function() {location.href="/graph?topic={{urlPath $parent}}"});
+                  titleArea.on("click tap", function() {location.href="/graph?topic={{encUrlPath $parent}}"});
 
 			      // add the shapes to the lineLayer
 			      titleLayer.add(titleArea);
@@ -682,9 +682,9 @@
 				        x: titleOffset
 				      });			
 
-	                  titleText.on("click tap", function() {location.href="/graph?topic={{urlPath $parent}}"});
+	                  titleText.on("click tap", function() {location.href="/graph?topic={{encUrlPath $parent}}"});
 	
-                      titleArea.on("click tap", function() {location.href="/graph?topic={{urlPath $parent}}"});				
+                      titleArea.on("click tap", function() {location.href="/graph?topic={{encUrlPath $parent}}"});				
 
 				      // add the shapes to the lineLayer
 				      titleLayer.add(titleArea);

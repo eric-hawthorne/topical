@@ -77,7 +77,13 @@ urlPath topic Topic > String
    => cat topic.ontology.urlPathComponent "/" topic.urlPathComponent
 
 
-
+encUrlPath topic Topic > String
+"""
+ Return the full url path of the topic, re-url-encoded.
+ This is needed when the value is to be an argument in a url in a javascript location.href="..."
+ because javascript apparently does not url-encode whatever you specify there.
+"""
+   => urlPathPartEncode (urlPath topic) false
 
 
 Link

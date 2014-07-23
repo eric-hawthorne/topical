@@ -31,7 +31,7 @@ index
    tok = session request
    nextUrl nextFound = kw["next"]
    if not nextFound
-      mextUrl = ""
+      nextUrl = ""
 
    notice = ""
 
@@ -125,6 +125,13 @@ default
    tok = session request 
    extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
    
+   print "------------"   
+   for arg in args
+      print arg
+   for arg in args
+      print urlPathPartEncode arg false
+   print "============"
+
    username = args[0] 
 
    if eq (len args) 1 
@@ -899,12 +906,22 @@ editChildrenAction request http_srv.Request topic String ordinal Int action Stri
       cat "editChildren?topic=" topic
 
 
-
-graph request http_srv.Request topic String > String String Any
+graphNewMaybe 
+   request http_srv.Request 
+   userName String 
+   ontologyPathComponent String
+   topicPathComponent String
+> 
+   String 
+   String 
+   Any
 """
  Display a topic association graph centred on the current topic.
 """
    tok = session request
+
+   topic = cat userName "/" ontologyPathComponent "/" topicPathComponent
+
    visit loggedIn loginPage = ensureLoggedIn tok topic
    if not visit
       => "REDIRECT"
@@ -941,3 +958,50 @@ graph request http_srv.Request topic String > String String Any
          "width"  => width
          "height" => height
       }String > Any
+
+
+graph request http_srv.Request topic String > String String Any
+"""
+ Display a topic association graph centred on the current topic.
+"""
+   tok = session request
+
+   // topic = reEncodeTopicPath topic
+   
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
+   if not exists topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 cat "/" visit.user.name
+   tpc = summon topic
+
+   visit err = ensureHavePermission tok "view" tpc.ontology 
+
+   if err
+      => extendSession
+         "REDIRECT"
+         cat "/?next=" topic 
+
+   // compute the positions of the topic for this user
+   width height = setGraphPositions tpc visit.user
+
+   => extendSession
+      "graph.html"
+      {
+         "topic"  => tpc
+         "user"   => visit.user
+         "width"  => width
+         "height" => height
+      }String > Any
+

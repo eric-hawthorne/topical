@@ -198,3 +198,19 @@ stripNbsps s String > String
    => s
 
 
+reEncodeTopicPath topic String > String
+"""
+ Takes a topic url path that has been url-decoded by the underlying framework.
+ Splits it into username, ontologyname, and topicTitle parts,
+ urlPathPartEncodes the ontology name and topic title parts, and rejoins into a single string.
+ Note this will not work if a / was included in the ontology name. So don't do that.
+"""
+   topic = slice topic 1  // remove initial "/"
+   slashPos = index topic "/"
+   userName = slice topic 0 slashPos
+   rightPart = slice topic (plus 1 slashPos)
+   slashPos = index rightPart "/"
+   ontologyName = slice rightPart 0 slashPos
+   topicTitle = slice rightPart (plus 1 slashPos)
+
+   => cat "/" userName "/" (urlPathPartEncode ontologyName false) "/" (urlPathPartEncode topicTitle false)
