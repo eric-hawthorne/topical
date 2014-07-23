@@ -25,7 +25,7 @@ X_MIN = 50
 Y_MIN = 50
 Y_ADJUST_INCREMENT = 12
 VERTICAL_LAYOUT_CHILD_HORIZONTAL_SEPARATION = 250
-
+VERTICAL_LAYOUT_GRANDCHILD_HORIZONTAL_SEPARATION = 200
 
 
 setGraphPositions 
@@ -40,21 +40,16 @@ setGraphPositions
  The positions are represented as position objects related to the user and each topic.
  Returns the required width and height of the canvas for the graph.
 """ 
-   wa wp wgp wggp = ancestorsWidth topic
-   wd wc wgc wggc = descendantsWidth topic
-   width = plus
-              max wa wd
-              times 2 X_MIN
 
-   height = plus 
-               times 2 Y_MIN
-               times 
-                  2
-                  plus 
-                     times MIN_Y_SEPARATION 3
-                     times Y_SEP_GROWTH 3
+
+   // height = plus 
+   //             times 2 Y_MIN
+   //             times 
+   //                2
+   //                plus 
+   //                   times MIN_Y_SEPARATION 3
+   //                   times Y_SEP_GROWTH 3
                        
-   x = div (times width 2) 5  // A little to the left of centre.
 
    numLayers = 0
 
@@ -116,11 +111,24 @@ setGraphPositions
          if nggc
             numLayers = plus numLayers 1
 
+   grandchildrenVertical = gt ngc 10
+   greatGrandchildrenVertical = or grandchildrenVertical (gt nggc 15)
+
+   wa wp wgp wggp = ancestorsWidth topic 
+   wd wc wgc wggc = descendantsWidth topic grandchildrenVertical greatGrandchildrenVertical
+   
+   width = plus
+              max wa wd
+              times 2 X_MIN   
+
+   x = div (times width 2) 5  // A little to the left of centre.
+
    height = plus 
                times 2 Y_MIN
                plus 
                   times MIN_Y_SEPARATION numLayers
                   times Y_SEP_GROWTH numLayers
+
 
    if np
       if ngp
@@ -522,6 +530,8 @@ setGraphPositions
             xi = X_MIN
             isLeftmost = true
             isOdd = true
+            xiPrev = xi
+
             for grandChild in grandChildren
                pos = position grandChild user
 
@@ -531,7 +541,6 @@ setGraphPositions
 
                if isLeftmost
                   xi = plus xi (div offset 2)             
-                  isLeftmost = false
                else
                   xi = plus xi 
                             div (plus offset prevOffset) 2
@@ -540,10 +549,20 @@ setGraphPositions
                if isOdd  // EGH new
                   yi = minus yi Y_ADJUST_INCREMENT
 
+
+               if gt nggc 15
+                  if isLeftmost
+                     xi = plus xi 200
+                  else
+                     xi = plus xi VERTICAL_LAYOUT_GRANDCHILD_HORIZONTAL_SEPARATION
+
+
+               xiggc = xi
+
                pos.x = xi
                pos.y = yi      
 
-               yMaxUsed = yi   
+               yMaxUsed = max yMaxUsed yi   
 
                if isOdd  // EGH new
                   yi = plus yi Y_ADJUST_INCREMENT
@@ -551,46 +570,80 @@ setGraphPositions
                else
                   isOdd = true    
 
+               if gt nggc 15
+                  // Lay out grand children of this child vertically
 
-            // Lay out Great Grandchildren
+                  yggc = plus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
+                  yiggc = yggc
 
-            yi = plus yi 
-                      plus MIN_Y_SEPARATION (times 2 Y_SEP_GROWTH)
-            yAdjust = times Y_ADJUST_INCREMENT (div nggc 2)
-            yi = plus yi yAdjust
+                  nggcThisGrandChild = len grandChild.childLinks
+                  if gt nggcThisGrandChild 1
+                     if isLeftmost
+                        xiggc = minus xiggc 75 
+                     else
+                        xiggc = minus xiggc 
+                                      div (times nggcThisGrandChild 25) 3 
+                        xiggc = max (plus xiPrev 100) xiggc
 
-            if nggc
-               xi = X_MIN
-               isLeftmost = true
-               isOdd = true
-               for greatGrandChild in greatGrandChildren
-                  pos = position greatGrandChild user
+                  for ggcl in grandChild.childLinks
+                     greatGrandChild = ggcl.child
+                     pos = position greatGrandChild user
+                     // hasGreatGrandChild = gt 0 (len grandChild.childLinks)
+                     
+                     pos.x = xiggc
+                     pos.y = yiggc
 
-                  offset = times
-                              min (len greatGrandChild.title) MAX_TITLE_CHARS_DISPLAYED
-                              minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
+                     yMaxUsed = max yMaxUsed yiggc                  
 
-                  if isLeftmost
-                     xi = plus xi (div offset 2)             
-                     isLeftmost = false
-                  else
-                     xi = plus xi 
-                               div (plus offset prevOffset) 2
-                  prevOffset = offset
+                     yiggc = plus yiggc (times 3 Y_ADJUST_INCREMENT)  
+                     xiggc = plus xiggc 25
 
-                  if isOdd  // EGH new
-                     yi = minus yi Y_ADJUST_INCREMENT
-                  
-                  pos.x = xi
-                  pos.y = yi  
 
-                  yMaxUsed = yi 
+               isLeftmost = false
+               xiPrev = xi
 
-                  if isOdd  // EGH new
-                     yi = plus yi Y_ADJUST_INCREMENT
-                     isOdd = false
-                  else
-                     isOdd = true                       
+
+            
+            if lte nggc 15
+               // Lay out all Great Grandchildren
+
+               yi = plus yi 
+                         plus MIN_Y_SEPARATION (times 2 Y_SEP_GROWTH)
+               yAdjust = times Y_ADJUST_INCREMENT (div nggc 2)
+               yi = plus yi yAdjust
+
+               if nggc
+                  xi = X_MIN
+                  isLeftmost = true
+                  isOdd = true
+                  for greatGrandChild in greatGrandChildren
+                     pos = position greatGrandChild user
+
+                     offset = times
+                                 min (len greatGrandChild.title) MAX_TITLE_CHARS_DISPLAYED
+                                 minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
+
+                     if isLeftmost
+                        xi = plus xi (div offset 2)             
+                        isLeftmost = false
+                     else
+                        xi = plus xi 
+                                  div (plus offset prevOffset) 2
+                     prevOffset = offset
+
+                     if isOdd  // EGH new
+                        yi = minus yi Y_ADJUST_INCREMENT
+                     
+                     pos.x = xi
+                     pos.y = yi  
+
+                     yMaxUsed = yi 
+
+                     if isOdd  // EGH new
+                        yi = plus yi Y_ADJUST_INCREMENT
+                        isOdd = false
+                     else
+                        isOdd = true                       
 
       yMaxUsed = plus yMaxUsed 50
 
@@ -616,11 +669,14 @@ setGraphPositions
 
       if lte ngc 10   
          if nggc
-            distribute greatGrandChildren user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
-            rightShift greatGrandChildren user focusPosition.x       
+            if lte nggc 15
+               distribute greatGrandChildren user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
+               rightShift greatGrandChildren user focusPosition.x       
          if ngc
-            distribute grandChildren user (minus CHAR_WIDTH GRAND_SQUEEZE) width (gt nggc 0)
-            rightShift grandChildren user focusPosition.x       
+            if lte nggc 15
+               distribute grandChildren user (minus CHAR_WIDTH GRAND_SQUEEZE) width (gt nggc 0)
+               rightShift grandChildren user focusPosition.x       
+         
          if nc
             if gt wgc wc
                distribute children
@@ -1307,7 +1363,15 @@ ancestorsWidth topic model.Topic > wa Int wp Int wgp Int wggp Int
 
    
 
-descendantsWidth topic model.Topic > wd Int wp Int wgp Int wggp Int
+descendantsWidth 
+   topic model.Topic 
+   grandchildrenVertical Bool
+   greatGrandchildrenVertical Bool
+> 
+   wd Int 
+   wp Int 
+   wgp Int 
+   wggp Int
 """
  Return a width based on an estimate of the width needed to display the titles of 
  children, grandchildren, and great grandchildren of the topic.
@@ -1322,21 +1386,41 @@ descendantsWidth topic model.Topic > wd Int wp Int wgp Int wggp Int
               times 
                  min (len child.title) MAX_TITLE_CHARS_DISPLAYED
                  CHAR_WIDTH
+      if grandchildrenVertical
+         n1 = plus n1 VERTICAL_LAYOUT_CHILD_HORIZONTAL_SEPARATION
       for gpLink in child.childLinks
          grandChild = gpLink.child
-         n2 = plus 
-                 n2
-                 times 
-                    min (len grandChild.title) MAX_TITLE_CHARS_DISPLAYED
-                    minus CHAR_WIDTH GRAND_SQUEEZE
+         if grandchildrenVertical
+            n2 = plus
+                    n2
+                    50
+         else
+            n2 = plus 
+                    n2
+                    times 
+                       min (len grandChild.title) MAX_TITLE_CHARS_DISPLAYED
+                       minus CHAR_WIDTH GRAND_SQUEEZE
+            if greatGrandchildrenVertical
+               n2 = plus n2 VERTICAL_LAYOUT_GRANDCHILD_HORIZONTAL_SEPARATION
 
          for ggpLink in grandChild.childLinks
             ggChild = ggpLink.child
-            n3 = plus 
-                    n3
-                    times 
-                       min (len ggChild.title) MAX_TITLE_CHARS_DISPLAYED
-                       minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
+            if greatGrandchildrenVertical
+               n3 = plus
+                       n3
+                       25
+            else
+               n3 = plus 
+                       n3
+                       times 
+                          min (len ggChild.title) MAX_TITLE_CHARS_DISPLAYED
+                          minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
+   if grandchildrenVertical
+      n2 = plus n2 400
+   if greatGrandchildrenVertical
+      if not grandchildrenVertical
+         n2 = plus n2 400
+      n3 = plus n3 400      
    wd = max (max n3 n2) n1
    wc wgc wggc = n1 n2 n3
 
