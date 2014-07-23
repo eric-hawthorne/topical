@@ -23,7 +23,8 @@ CHAR_HEIGHT = 14
 MAX_TITLE_CHARS_DISPLAYED = 40
 X_MIN = 50
 Y_MIN = 50
-Y_ADJUST_INCREMENT = 6
+Y_ADJUST_INCREMENT = 12
+VERTICAL_LAYOUT_CHILD_HORIZONTAL_SEPARATION = 250
 
 
 
@@ -417,6 +418,8 @@ setGraphPositions
       xi = X_MIN
       isLeftmost = true
       isOdd = true
+      xiPrev = xi
+
       for child in children
          pos = position child user
 
@@ -427,18 +430,25 @@ setGraphPositions
          if isLeftmost
             xi = plus xi (div offset 2)      
             // print child.title xi       
-            isLeftmost = false
          else
             xi = plus xi 
                       div (plus offset prevOffset) 2
          prevOffset = offset
+
+         if gt ngc 10
+            if isLeftmost
+               xi = plus xi 200
+            else
+               xi = plus xi VERTICAL_LAYOUT_CHILD_HORIZONTAL_SEPARATION
+
+         xigc = xi
 
          if isOdd  // EGH new
             yi = minus yi Y_ADJUST_INCREMENT
          pos.x = xi
          pos.y = yi    
 
-         yMaxUsed = yi  
+         yMaxUsed = max yMaxUsed yi  
 
          if isOdd  // EGH new
             yi = plus yi Y_ADJUST_INCREMENT
@@ -448,20 +458,59 @@ setGraphPositions
 
          // print child.title "offset" offset "xi" xi
 
-         if false  // gt ngc 10
+         if gt ngc 10
 
             // Lay out Grandchildren from one child
             ygc = plus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
+            yigc = ygc
+
+            ngcThisChild = len child.childLinks
+            if gt ngcThisChild 1
+               if isLeftmost
+                  xigc = minus xigc 75 
+               else
+                  xigc = minus xigc 
+                               div (times ngcThisChild 50) 3 
+                  xigc = max (plus xiPrev 150) xigc
 
             for gcl in child.childLinks
                grandChild = gcl.child
                pos = position grandChild user
-               hasGreatGrandChild = gt 0 (len grandChild.childLinks)
+               // hasGreatGrandChild = gt 0 (len grandChild.childLinks)
+               
+               pos.x = xigc
+               pos.y = yigc
 
+               yMaxUsed = max yMaxUsed yigc                  
+
+               yigc = plus yigc (times 3 Y_ADJUST_INCREMENT)  
+               xigc = plus xigc 50
+
+               xiggc = minus pos.x 25
+               yiggc = plus yigc 
+                            plus MIN_Y_SEPARATION (times 3 Y_SEP_GROWTH)
+
+               for ggcl in grandChild.childLinks
+                  greatGrandChild = ggcl.child
+                  pos = position greatGrandChild user
+
+                  pos.x = xiggc
+                  pos.y = yiggc
+
+
+                  yMaxUsed = max yMaxUsed yiggc                   
+
+                  yiggc = plus yiggc (times 3 Y_ADJUST_INCREMENT)  
+                  xiggc = plus xiggc 25
+
+
+
+         isLeftmost = false
+         xiPrev = xi
         
       /////////////////////////
 
-      if true  // lte ngc 10
+      if lte ngc 10
 
          // Lay out all Grandchildren
 
@@ -564,22 +613,24 @@ setGraphPositions
          else 
             distribute parents user CHAR_WIDTH width (gt ngp 0)   
          rightShift parents user focusPosition.x      
-      if nggc
-         distribute greatGrandChildren user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
-         rightShift greatGrandChildren user focusPosition.x       
-      if ngc
-         distribute grandChildren user (minus CHAR_WIDTH GRAND_SQUEEZE) width (gt nggc 0)
-         rightShift grandChildren user focusPosition.x       
-      if nc
-         if gt wgc wc
-            distribute children
-                       user 
-                       CHAR_WIDTH 
-                       minus width (times 2 X_MIN) 
-                       (gt ngc 0)
-         else
-            distribute children user CHAR_WIDTH width (gt ngc 0)
-         rightShift children user focusPosition.x
+
+      if lte ngc 10   
+         if nggc
+            distribute greatGrandChildren user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
+            rightShift greatGrandChildren user focusPosition.x       
+         if ngc
+            distribute grandChildren user (minus CHAR_WIDTH GRAND_SQUEEZE) width (gt nggc 0)
+            rightShift grandChildren user focusPosition.x       
+         if nc
+            if gt wgc wc
+               distribute children
+                          user 
+                          CHAR_WIDTH 
+                          minus width (times 2 X_MIN) 
+                          gt ngc 0
+            else
+               distribute children user CHAR_WIDTH width (gt ngc 0)
+            rightShift children user focusPosition.x
 
 
 
@@ -1121,7 +1172,7 @@ setGraphPositionsOld
                     user 
                     CHAR_WIDTH 
                     minus width (times 2 X_MIN) 
-                    (gt ngc 0)
+                    gt ngc 0
       else
          distribute children user CHAR_WIDTH width (gt ngc 0)
       rightShift children user focusPosition.x
