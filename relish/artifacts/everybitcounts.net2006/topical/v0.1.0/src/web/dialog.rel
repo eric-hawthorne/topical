@@ -125,12 +125,12 @@ default
    tok = session request 
    extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
    
-   print "------------"   
-   for arg in args
-      print arg
-   for arg in args
-      print urlPathPartEncode arg false
-   print "============"
+   // print "------------"   
+   // for arg in args
+   //    print arg
+   // for arg in args
+   //    print urlPathPartEncode arg false
+   // print "============"
 
    username = args[0] 
 
@@ -560,8 +560,12 @@ linkNewTopicAction request http_srv.Request linkType String linkSubtype String t
 topicSearch request http_srv.Request next String rel String linkSubtype String topic String key String 
 > String String Any
 """
- Displays a page containing a list of topics whose title contains the key.
- TODO extend to searching content.  
+ Displays a page containing a list of topics whose title or content contains the key.
+ If the search key begins with "title: ", only the topic title is searched.
+ If the search key begins with "content: ", only the topic content is searched. 
+ Note: Content is not searched if titles were searched and resulted in 30 or more matches.
+ If the search key ends in "*", the key, minus the *, is matched against only the beginning of the 
+ title and/or beginning of the content text.
 """
    tok = session request
    visit loggedIn loginPage = ensureLoggedIn tok topic
@@ -576,17 +580,54 @@ topicSearch request http_srv.Request next String rel String linkSubtype String t
    extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
 
    key = trimSpace key
+   searchTitles = true
+   searchContent = true
+   uKey = upper key
+   if hasPrefix uKey "TITLE: "
+      searchContent = false
+      key = slice key 7
+   elif hasPrefix uKey "TITLE:"
+      searchContent = false
+      key = slice key 6
+   elif hasPrefix uKey "CONTENT: "
+      searchTitle = false
+      key = slice key 9
+   elif hasPrefix uKey "CONTENT:"
+      searchTitle = false
+      key = slice key 8
+
+
    if lt (len key) 2
       => errPage extendSession
                  "Please specify a longer keyword to search for topics."
                  "Ok"       
                  topic
    // print "got to 1"
-   topics1 = []model.Topic cat "title like '%" key "%' order by title"
-   // print "got to 2"
-   if lt (len topics1) 30
+
+   if hasSuffix key "*"
+      keyPattern = cat (slice key 0 -1) "%"
+   else
+      keyPattern = cat "%" key "%"
+
+   // Restrict search to topics in the same ontology as the topic we are focussed on now.
+   tpc = summon topic
+   ontUrlPath = tpc.ontology.urlPathComponent
+
+   if searchTitles   
+      titleQuery = "title like ? and ontology.urlPathComponent = ? order by title"
+      topics1 = []model.Topic [titleQuery keyPattern ontUrlPath]Any
+      // topics1 = []model.Topic cat "title like '%" key "%' order by title"
+      // print "got to 2"
+   else 
+      topics1 = []model.Topic
+
+   if and searchContent
+          lt (len topics1) 30
       // print "got to 3"
-      topics2 = []model.Topic cat "content like '%" key "%' order by title"
+      contentQuery = "content like ? and ontology.urlPathComponent = ? order by title"
+      topics2 = []model.Topic [contentQuery keyPattern ontUrlPath]Any      
+      // topics2 = []model.Topic cat "content like '%" key "%' order by title"
+
       // print "got to 4"
       topics3 = []model.Topic
       for topic2 in topics2
@@ -898,8 +939,18 @@ editChildrenAction request http_srv.Request topic String ordinal Int action Stri
       swap tpc.childLinks ordinal (plus ordinal 1)  
    else  // "-x-"
       childLink = tpc.childLinks[ordinal]
+      childTopic = childLink.child      
       tpc.childLinks -= childLink
-      childLink.child.parentLinks -= childLink
+  
+      print "removing child link"
+      print len childTopic.parentLinks
+      print contains childTopic.parentLinks childLink
+
+      childTopic.parentLinks -= childLink      
+
+      // childLink.child.parentLinks -= childLink
+      print len childTopic.parentLinks
+      print contains childTopic.parentLinks childLink
 
    => extendSession
       "REDIRECT"

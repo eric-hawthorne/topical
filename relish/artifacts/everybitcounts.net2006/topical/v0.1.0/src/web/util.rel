@@ -204,6 +204,8 @@ reEncodeTopicPath topic String > String
  Splits it into username, ontologyname, and topicTitle parts,
  urlPathPartEncodes the ontology name and topic title parts, and rejoins into a single string.
  Note this will not work if a / was included in the ontology name. So don't do that.
+
+ NOT CURRENTLY IN USE - MAYBE DELETE THIS METHOD
 """
    topic = slice topic 1  // remove initial "/"
    slashPos = index topic "/"

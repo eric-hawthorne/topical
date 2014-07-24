@@ -197,7 +197,7 @@ assertParentChild p Topic c Topic linkSubtype String > pc ParentChild err String
    // pc.forwardOrdinal = nc
    // pc.backwardOrdinal = np
    pc.subType = linkSubtype
-   c.parentLinks += pc
+   c.parentLinks += pc  
    p.childLinks += pc
 
 
