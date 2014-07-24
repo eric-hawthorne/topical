@@ -941,16 +941,8 @@ editChildrenAction request http_srv.Request topic String ordinal Int action Stri
       childLink = tpc.childLinks[ordinal]
       childTopic = childLink.child      
       tpc.childLinks -= childLink
-  
-      print "removing child link"
-      print len childTopic.parentLinks
-      print contains childTopic.parentLinks childLink
-
       childTopic.parentLinks -= childLink      
-
-      // childLink.child.parentLinks -= childLink
-      print len childTopic.parentLinks
-      print contains childTopic.parentLinks childLink
+      delete childLink
 
    => extendSession
       "REDIRECT"
