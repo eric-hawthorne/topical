@@ -91,32 +91,52 @@ setGraphPositions
 
       // Collect Grandchildren
       grandChildren = []model.Topic
+      grandChildrenSet = {}model.Topic      
       for childLink in topic.childLinks
          child = childLink.child
          for gpLink in child.childLinks
             grandChildren += gpLink.child
-
-      ngc = len grandChildren
+            grandChildrenSet += gpLink.child
+      ngc = len grandChildrenSet
 
       if ngc
          numLayers = plus numLayers 1      
          
          // Collect Great Grandchildren
          greatGrandChildren = []model.Topic
+         greatGrandChildrenSet = {}model.Topic         
          for grandchild in grandChildren
             for ggcLink in grandchild.childLinks
                greatGrandChildren += ggcLink.child
-
-         nggc = len greatGrandChildren
+               greatGrandChildrenSet += ggcLink.child
+         nggc = len greatGrandChildrenSet
          if nggc
             numLayers = plus numLayers 1
 
-   grandchildrenVertical = gt ngc 10
-   greatGrandchildrenVertical = or grandchildrenVertical (gt nggc 15)
+
+
+
+
+   // Prepare to lay out children, grandchildren, and great grandchildren
+   // Compute layout hints depending on number of each of these.
+
+   verticalGrandChildren = and (gt ngc 10) (gt ngc nc)
+   horizontalGrandChildren = not verticalGrandChildren
+
+   verticalGreatGrandChildren = or verticalGrandChildren 
+                                   and (gt nggc 15) (gt nggc ngc)
+   horizontalGreatGrandChildren = not verticalGrandChildren
+
+
+
+
+
+
+
 
    wa wp wgp wggp = ancestorsWidth topic 
-   wd wc wgc wggc = descendantsWidth topic grandchildrenVertical greatGrandchildrenVertical
-   
+   wd wc wgc wggc = descendantsWidth topic verticalGrandChildren verticalGreatGrandChildren 
+
    width = plus
               max wa wd
               times 2 X_MIN   
@@ -413,13 +433,6 @@ setGraphPositions
 
    // Prepare to lay out children, grandchildren, and great grandchildren
    // Compute layout hints depending on number of each of these.
-
-   verticalGrandChildren = and (gt ngc 10) (gt ngc nc)
-   horizontalGrandChildren = not verticalGrandChildren
-
-   verticalGreatGrandChildren = or verticalGrandChildren 
-                                   and (gt nggc 15) (gt nggc ngc)
-   horizontalGreatGrandChildren = not verticalGrandChildren
 
    extraChildDepth = 0
    if gt nc 30
