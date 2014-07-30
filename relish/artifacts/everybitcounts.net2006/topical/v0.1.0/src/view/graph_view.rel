@@ -62,23 +62,25 @@ setGraphPositions
 
       // Collect Grandparents
       grandParents = []model.Topic
+      grandParentSet = {}model.Topic      
       for parentLink in topic.parentLinks
          parent = parentLink.parent
          for gpLink in parent.parentLinks
             grandParents += gpLink.parent
-
-      ngp = len grandParents
+            grandParentSet += gpLink.parent
+      ngp = len grandParentSet
 
       if ngp
          numLayers = 2
 
          // Collect Great Grandparents
          greatGrandParents = []model.Topic
+         greatGrandParentSet = {}model.Topic         
          for grandparent in grandParents
             for ggpLink in grandparent.parentLinks
                greatGrandParents += ggpLink.parent
-
-         nggp = len greatGrandParents
+               greatGrandParentSet += ggpLink.parent
+         nggp = len greatGrandParentSet
          if nggp
             numLayers = 3
 
@@ -125,17 +127,68 @@ setGraphPositions
 
    verticalGreatGrandChildren = or verticalGrandChildren 
                                    and (gt nggc 15) (gt nggc ngc)
-   horizontalGreatGrandChildren = not verticalGrandChildren
+   horizontalGreatGrandChildren = not verticalGreatGrandChildren
+   print ""
+   print "nggp" nggp "ngp" ngp "np" np 
+   print "nc" nc "ngc" ngc "nggc" nggc
+   print "verticalGrandChildren" verticalGrandChildren
+   print "horizontalGrandChildren" horizontalGrandChildren
+   print "verticalGreatGrandChildren" verticalGreatGrandChildren
+   print "horizontalGreatGrandChildren" horizontalGreatGrandChildren
 
+   // Prepare to lay out children, grandchildren, and great grandchildren
+   // Compute layout hints depending on number of each of these.
 
+   extraParentDepth = 0
+   if gt np 30
+      extraParentDepth = 600
+   elif gt np 20
+      extraParentDepth = 400
+   elif gt np 10
+      extraParentDepth = 200  
 
+   extraChildDepth = 0
+   if gt nc 30
+      extraChildDepth = 600
+   elif gt nc 20
+      extraChildDepth = 400
+   elif gt nc 10
+      extraChildDepth = 200                                
 
+   extraGrandChildDepth = 0
+   if gt ngc 30
+      extraGrandChildDepth = 600
+   elif gt ngc 20
+      extraGrandChildDepth = 400
+   elif gt ngc 10
+      extraGrandChildDepth = 200  
 
+   extraGreatGrandChildDepth = 0
+   if gt nggc 30
+      extraGreatGrandChildDepth = 600
+   elif gt nggc 20
+      extraGreatGrandChildDepth = 400
+   elif gt nggc 10
+      extraGreatGrandChildDepth = 200        
+
+   if extraChildDepth
+      print "extraChildDepth" extraChildDepth
+   if horizontalGrandChildren
+      print "extraGrandChildDepth" extraGrandChildDepth
+   if horizontalGreatGrandChildren
+      print "extraGreatGrandChildDepth" extraGreatGrandChildDepth
 
 
 
    wa wp wgp wggp = ancestorsWidth topic 
    wd wc wgc wggc = descendantsWidth topic verticalGrandChildren verticalGreatGrandChildren 
+
+   print "wa" wa 
+   print "wggp" wggp "wgp" wgp "wp" wp 
+   print "wd" wd 
+   print "wc" wc "wgc" wgc "wggc" wggc
+
+
 
    width = plus
               max wa wd
@@ -143,11 +196,14 @@ setGraphPositions
 
    x = div (times width 2) 5  // A little to the left of centre.
 
-   height = plus 
-               times 2 Y_MIN
-               plus 
-                  times MIN_Y_SEPARATION numLayers
-                  times Y_SEP_GROWTH numLayers
+   print "width" width "x" x
+
+   height = plus extraParentDepth
+                 plus 
+                    times 2 Y_MIN
+                    plus 
+                       times MIN_Y_SEPARATION numLayers
+                       times Y_SEP_GROWTH numLayers
 
 
    if np
@@ -216,6 +272,9 @@ setGraphPositions
    focusTopicWidth = times (len topic.title) CHAR_WIDTH
 
 
+   visited = {topic}model.Topic
+
+
    // Lay out related tos
 
    xMaxUsed = X_MIN  // These will define how much the focus topic has to be moved
@@ -230,25 +289,27 @@ setGraphPositions
       isLeftmost = true
       for toLink in topic.toLinks
          related = toLink.to
-         pos = position related user
+         if not contains visited related
+            visited += related
+            pos = position related user
 
-         offset = times
-                     min (len related.title) MAX_TITLE_CHARS_DISPLAYED
-                     CHAR_WIDTH
+            offset = times
+                        min (len related.title) MAX_TITLE_CHARS_DISPLAYED
+                        CHAR_WIDTH
 
-         if isLeftmost
-            xi = plus xi (div offset 3)
-            // print related.title xi 
-            isLeftmost = false 
+            if isLeftmost
+               xi = plus xi (div offset 3)
+               // print related.title xi 
+               isLeftmost = false 
 
-         pos.x = xi
-         pos.y = yi         
+            pos.x = xi
+            pos.y = yi         
 
-         xMaxUsed = plus xi offset
-         yMaxUsed = plus yi CHAR_HEIGHT
+            xMaxUsed = plus xi offset
+            yMaxUsed = plus yi CHAR_HEIGHT
 
-         xi = plus xi 50
-         yi = plus yi CHAR_HEIGHT
+            xi = plus xi 50
+            yi = plus yi CHAR_HEIGHT
 
    // Lay out related froms
 
@@ -259,25 +320,28 @@ setGraphPositions
       isLeftmost = true
       for fromLink in topic.fromLinks
          related = fromLink.from
-         pos = position related user      
+         if not contains visited related
+            visited += related
 
-         offset = times
-                     min (len related.title) MAX_TITLE_CHARS_DISPLAYED
-                     CHAR_WIDTH
+            pos = position related user      
 
-         if isLeftmost
-            xi = plus xi (div offset 2)
-            // print related.title xi 
-            isLeftmost = false 
+            offset = times
+                        min (len related.title) MAX_TITLE_CHARS_DISPLAYED
+                        CHAR_WIDTH
 
-         pos.x = xi
-         pos.y = yi         
+            if isLeftmost
+               xi = plus xi (div offset 2)
+               // print related.title xi 
+               isLeftmost = false 
 
-         xMaxUsed = max xMaxUsed (plus xi offset)
-         yMaxUsed = plus yi CHAR_HEIGHT
+            pos.x = xi
+            pos.y = yi         
 
-         xi = plus xi 50
-         yi = plus yi CHAR_HEIGHT
+            xMaxUsed = max xMaxUsed (plus xi offset)
+            yMaxUsed = plus yi CHAR_HEIGHT
+
+            xi = plus xi 50
+            yi = plus yi CHAR_HEIGHT
 
    xMaxUsed = plus xMaxUsed 50
    yMaxUsed = plus yMaxUsed 50
@@ -316,7 +380,7 @@ setGraphPositions
 
    // Lay out Parents
 
-   yi = minus y MIN_Y_SEPARATION 
+   yi = minus y (plus MIN_Y_SEPARATION extraParentDepth)
  
    // EGH not doing this any more because alternating y bumps up and down
    // yAdjust = times Y_ADJUST_INCREMENT (div np 2)
@@ -329,31 +393,36 @@ setGraphPositions
       isLeftmost = true
       isOdd = true
       for parent in parents
-         pos = position parent user
 
-         offset = times
-                     min (len parent.title) MAX_TITLE_CHARS_DISPLAYED
-                     CHAR_WIDTH
-
-         if isLeftmost
-            xi = plus xi (div offset 2)
-            // print parent.title xi 
-            isLeftmost = false 
-         else
-            xi = plus xi 
-                      div (plus offset prevOffset) 2
-         prevOffset = offset
+         if not contains visited parent
+            visited += parent
 
 
-         if isOdd  // EGH new
-            yi = plus yi Y_ADJUST_INCREMENT
-         pos.x = xi
-         pos.y = yi         
-         if isOdd  // EGH new
-            yi = minus yi Y_ADJUST_INCREMENT
-            isOdd = false
-         else
-            isOdd = true   
+            pos = position parent user
+
+            offset = times
+                        min (len parent.title) MAX_TITLE_CHARS_DISPLAYED
+                        CHAR_WIDTH
+
+            if isLeftmost
+               xi = plus xi (div offset 2)
+               // print parent.title xi 
+               isLeftmost = false 
+            else
+               xi = plus xi 
+                         div (plus offset prevOffset) 2
+            prevOffset = offset
+
+
+            if isOdd  // EGH new
+               yi = plus yi Y_ADJUST_INCREMENT
+            pos.x = xi
+            pos.y = yi         
+            if isOdd  // EGH new
+               yi = minus yi Y_ADJUST_INCREMENT
+               isOdd = false
+            else
+               isOdd = true   
 
 
       // Lay out Grandparents
@@ -369,30 +438,33 @@ setGraphPositions
          isLeftmost = true
          isOdd = true         
          for grandParent in grandParents
-            pos = position grandParent user
+            if not contains visited grandParent
+               visited += grandParent
 
-            offset = times
-                        min (len grandParent.title) MAX_TITLE_CHARS_DISPLAYED
-                        minus CHAR_WIDTH GRAND_SQUEEZE
+               pos = position grandParent user
 
-            if isLeftmost
-               xi = plus xi (div offset 2)
-               isLeftmost = false
-            else
-               xi = plus xi 
-                         div (plus offset prevOffset) 2
-            prevOffset = offset
+               offset = times
+                           min (len grandParent.title) MAX_TITLE_CHARS_DISPLAYED
+                           minus CHAR_WIDTH GRAND_SQUEEZE
 
-            if isOdd  // EGH new
-               yi = plus yi Y_ADJUST_INCREMENT
+               if isLeftmost
+                  xi = plus xi (div offset 2)
+                  isLeftmost = false
+               else
+                  xi = plus xi 
+                            div (plus offset prevOffset) 2
+               prevOffset = offset
 
-            pos.x = xi
-            pos.y = yi         
-            if isOdd  // EGH new
-               yi = minus yi Y_ADJUST_INCREMENT
-               isOdd = false
-            else
-               isOdd = true   
+               if isOdd  // EGH new
+                  yi = plus yi Y_ADJUST_INCREMENT
+
+               pos.x = xi
+               pos.y = yi         
+               if isOdd  // EGH new
+                  yi = minus yi Y_ADJUST_INCREMENT
+                  isOdd = false
+               else
+                  isOdd = true   
 
 
          // Lay out Great Grandparents
@@ -407,56 +479,35 @@ setGraphPositions
             isLeftmost = true
             isOdd = true
             for greatGrandParent in greatGrandParents
-               pos = position greatGrandParent user
+               if not contains visited greatGrandParent
+                  visited += greatGrandParent
 
-               offset = times
-                           min (len greatGrandParent.title) MAX_TITLE_CHARS_DISPLAYED
-                           minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
+                  pos = position greatGrandParent user
 
-               if isLeftmost
-                  xi = plus xi (div offset 2)
-                  isLeftmost = false
-               else
-                  xi = plus xi 
-                            div (plus offset prevOffset) 2
-               prevOffset = offset
+                  offset = times
+                              min (len greatGrandParent.title) MAX_TITLE_CHARS_DISPLAYED
+                              minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
 
-               if isOdd  // EGH new
-                  yi = plus yi Y_ADJUST_INCREMENT
-               pos.x = xi
-               pos.y = yi      
-               if isOdd  // EGH new
-                  yi = minus yi Y_ADJUST_INCREMENT
-                  isOdd = false
-               else
-                  isOdd = true                      
+                  if isLeftmost
+                     xi = plus xi (div offset 2)
+                     isLeftmost = false
+                  else
+                     xi = plus xi 
+                               div (plus offset prevOffset) 2
+                  prevOffset = offset
 
-   // Prepare to lay out children, grandchildren, and great grandchildren
-   // Compute layout hints depending on number of each of these.
+                  if isOdd  // EGH new
+                     yi = plus yi Y_ADJUST_INCREMENT
+                  pos.x = xi
+                  pos.y = yi      
+                  if isOdd  // EGH new
+                     yi = minus yi Y_ADJUST_INCREMENT
+                     isOdd = false
+                  else
+                     isOdd = true                      
 
-   extraChildDepth = 0
-   if gt nc 30
-      extraChildDepth = 600
-   elif gt nc 20
-      extraChildDepth = 400
-   if gt nc 10
-      extraChildDepth = 200                                
 
-   extraGrandChildDepth = 0
-   if gt ngc 30
-      extraGrandChildDepth = 600
-   elif gt ngc 20
-      extraGrandChildDepth = 400
-   if gt ngc 10
-      extraGrandChildDepth = 200  
 
-   extraGreatGrandChildDepth = 0
-   if gt nggc 30
-      extraGreatGrandChildDepth = 600
-   elif gt nggc 20
-      extraGreatGrandChildDepth = 400
-   if gt nggc 10
-      extraGreatGrandChildDepth = 200        
 
 
    // Lay out Children
@@ -477,93 +528,101 @@ setGraphPositions
       xiPrev = xi
 
       for child in children
-         pos = position child user
+         if not contains visited child
+            visited += child
 
-         offset = times
-                     min (len child.title) MAX_TITLE_CHARS_DISPLAYED
-                     CHAR_WIDTH
+            pos = position child user
 
-         if isLeftmost
-            xi = plus xi (div offset 2)      
-            // print child.title xi       
-         else
-            xi = plus xi 
-                      div (plus offset prevOffset) 2
-         prevOffset = offset
+            offset = times
+                        min (len child.title) MAX_TITLE_CHARS_DISPLAYED
+                        CHAR_WIDTH
 
-         if verticalGrandChildren
             if isLeftmost
-               xi = plus xi 200
+               xi = plus xi (div offset 2)      
+               // print child.title xi       
             else
-               xi = plus xi VERTICAL_LAYOUT_CHILD_HORIZONTAL_SEPARATION
+               xi = plus xi 
+                         div (plus offset prevOffset) 2
+            prevOffset = offset
 
-         xigc = xi
-
-         if isOdd  // EGH new
-            yi = minus yi Y_ADJUST_INCREMENT
-         pos.x = xi
-         pos.y = yi    
-
-         yMaxUsed = max yMaxUsed yi  
-
-         if isOdd  // EGH new
-            yi = plus yi Y_ADJUST_INCREMENT
-            isOdd = false
-         else
-            isOdd = true   
-
-         // print child.title "offset" offset "xi" xi
-
-         if verticalGrandChildren
-
-            // Lay out Grandchildren from one child vertically
-
-            ygc = plus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
-            yigc = ygc
-
-            ngcThisChild = len child.childLinks
-            if gt ngcThisChild 1
+            if verticalGrandChildren
                if isLeftmost
-                  xigc = minus xigc 75 
+                  xi = plus xi 200
                else
-                  xigc = minus xigc 
-                               div (times ngcThisChild 50) 3 
-                  xigc = max (plus xiPrev 150) xigc
+                  xi = plus xi VERTICAL_LAYOUT_CHILD_HORIZONTAL_SEPARATION
 
-            for gcl in child.childLinks
-               grandChild = gcl.child
-               pos = position grandChild user
-               // hasGreatGrandChild = gt 0 (len grandChild.childLinks)
-               
-               pos.x = xigc
-               pos.y = yigc
+            xigc = xi
 
-               yMaxUsed = max yMaxUsed yigc                  
+            if isOdd  // EGH new
+               yi = minus yi Y_ADJUST_INCREMENT
+            pos.x = xi
+            pos.y = yi    
 
-               yigc = plus yigc (times 3 Y_ADJUST_INCREMENT)  
-               xigc = plus xigc 50
+            yMaxUsed = max yMaxUsed yi  
 
-               xiggc = minus pos.x 25
-               yiggc = plus yigc 
-                            plus MIN_Y_SEPARATION (times 3 Y_SEP_GROWTH)
+            if isOdd  // EGH new
+               yi = plus yi Y_ADJUST_INCREMENT
+               isOdd = false
+            else
+               isOdd = true   
 
-               for ggcl in grandChild.childLinks
-                  greatGrandChild = ggcl.child
-                  pos = position greatGrandChild user
+            // print child.title "offset" offset "xi" xi
 
-                  pos.x = xiggc
-                  pos.y = yiggc
+            if verticalGrandChildren
+
+               // Lay out Grandchildren from one child vertically
+
+               ygc = plus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
+               yigc = ygc
+
+               ngcThisChild = len child.childLinks
+               if gt ngcThisChild 1
+                  if isLeftmost
+                     xigc = minus xigc 75 
+                  else
+                     xigc = minus xigc 
+                                  div (times ngcThisChild 50) 3 
+                     xigc = max (plus xiPrev 150) xigc
+
+               for gcl in child.childLinks
+                  grandChild = gcl.child
+                  if not contains visited grandChild
+                     visited += grandChild
+
+                     pos = position grandChild user
+                     // hasGreatGrandChild = gt 0 (len grandChild.childLinks)
+                     
+                     pos.x = xigc
+                     pos.y = yigc
+
+                     yMaxUsed = max yMaxUsed yigc                  
+
+                     yigc = plus yigc (times 3 Y_ADJUST_INCREMENT)  
+                     xigc = plus xigc 50
+
+                     xiggc = minus pos.x 25
+                     yiggc = plus yigc 
+                                  plus MIN_Y_SEPARATION (times 3 Y_SEP_GROWTH)
+
+                     for ggcl in grandChild.childLinks
+                        greatGrandChild = ggcl.child
+                        if not contains visited greatGrandChild
+                           visited += greatGrandChild                        
+                           pos = position greatGrandChild user
+
+                           pos.x = xiggc
+                           pos.y = yiggc
 
 
-                  yMaxUsed = max yMaxUsed yiggc                   
+                           yMaxUsed = max yMaxUsed yiggc                   
 
-                  yiggc = plus yiggc (times 3 Y_ADJUST_INCREMENT)  
-                  xiggc = plus xiggc 25
+                           yiggc = plus yiggc (times 3 Y_ADJUST_INCREMENT)  
+                           xiggc = plus xiggc 25
 
 
 
-         isLeftmost = false
-         xiPrev = xi
+            isLeftmost = false
+            xiPrev = xi
         
       /////////////////////////
 
@@ -585,74 +644,80 @@ setGraphPositions
             xiPrev = xi
 
             for grandChild in grandChildren
-               pos = position grandChild user
+               if not contains visited grandChild
+                  visited += grandChild
 
-               offset = times
-                           min (len grandChild.title) MAX_TITLE_CHARS_DISPLAYED
-                           minus CHAR_WIDTH GRAND_SQUEEZE
+                  pos = position grandChild user
 
-               if isLeftmost
-                  xi = plus xi (div offset 2)             
-               else
-                  xi = plus xi 
-                            div (plus offset prevOffset) 2
-               prevOffset = offset
+                  offset = times
+                              min (len grandChild.title) MAX_TITLE_CHARS_DISPLAYED
+                              minus CHAR_WIDTH GRAND_SQUEEZE
 
-               if isOdd  // EGH new
-                  yi = minus yi Y_ADJUST_INCREMENT
-
-
-               if verticalGreatGrandChildren
                   if isLeftmost
-                     xi = plus xi 200
+                     xi = plus xi (div offset 2)             
                   else
-                     xi = plus xi VERTICAL_LAYOUT_GRANDCHILD_HORIZONTAL_SEPARATION
+                     xi = plus xi 
+                               div (plus offset prevOffset) 2
+                  prevOffset = offset
+
+                  if isOdd  // EGH new
+                     yi = minus yi Y_ADJUST_INCREMENT
 
 
-               xiggc = xi
-
-               pos.x = xi
-               pos.y = yi      
-
-               yMaxUsed = max yMaxUsed yi   
-
-               if isOdd  // EGH new
-                  yi = plus yi Y_ADJUST_INCREMENT
-                  isOdd = false
-               else
-                  isOdd = true    
-
-               if verticalGreatGrandChildren
-                  // Lay out great grand children vertically
-
-                  yggc = plus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
-                  yiggc = yggc
-
-                  nggcThisGrandChild = len grandChild.childLinks
-                  if gt nggcThisGrandChild 1
+                  if verticalGreatGrandChildren
                      if isLeftmost
-                        xiggc = minus xiggc 75 
+                        xi = plus xi 200
                      else
-                        xiggc = minus xiggc 
-                                      div (times nggcThisGrandChild 25) 3 
-                        xiggc = max (plus xiPrev 100) xiggc
-
-                  for ggcl in grandChild.childLinks
-                     greatGrandChild = ggcl.child
-                     pos = position greatGrandChild user
-                     // hasGreatGrandChild = gt 0 (len grandChild.childLinks)
-                     
-                     pos.x = xiggc
-                     pos.y = yiggc
-
-                     yMaxUsed = max yMaxUsed yiggc                  
-
-                     yiggc = plus yiggc (times 3 Y_ADJUST_INCREMENT)  
-                     xiggc = plus xiggc 25
+                        xi = plus xi VERTICAL_LAYOUT_GRANDCHILD_HORIZONTAL_SEPARATION
 
 
-               isLeftmost = false
-               xiPrev = xi
+                  xiggc = xi
+
+                  pos.x = xi
+                  pos.y = yi      
+
+                  yMaxUsed = max yMaxUsed yi   
+
+                  if isOdd  // EGH new
+                     yi = plus yi Y_ADJUST_INCREMENT
+                     isOdd = false
+                  else
+                     isOdd = true    
+
+                  if verticalGreatGrandChildren
+                     // Lay out great grand children vertically
+
+                     yggc = plus yi (plus MIN_Y_SEPARATION Y_SEP_GROWTH)
+                     yiggc = yggc
+
+                     nggcThisGrandChild = len grandChild.childLinks
+                     if gt nggcThisGrandChild 1
+                        if isLeftmost
+                           xiggc = minus xiggc 75 
+                        else
+                           xiggc = minus xiggc 
+                                         div (times nggcThisGrandChild 25) 3 
+                           xiggc = max (plus xiPrev 100) xiggc
+
+                     for ggcl in grandChild.childLinks
+                        greatGrandChild = ggcl.child
+                        if not contains visited greatGrandChild
+                           visited += greatGrandChild  
+
+                           pos = position greatGrandChild user
+                           // hasGreatGrandChild = gt 0 (len grandChild.childLinks)
+                           
+                           pos.x = xiggc
+                           pos.y = yiggc
+
+                           yMaxUsed = max yMaxUsed yiggc                  
+
+                           yiggc = plus yiggc (times 3 Y_ADJUST_INCREMENT)  
+                           xiggc = plus xiggc 25
+
+
+                  isLeftmost = false
+                  xiPrev = xi
 
 
             
@@ -662,7 +727,7 @@ setGraphPositions
 
                yi = plus yi 
                          plus MIN_Y_SEPARATION 
-                              plus (times 2 Y_SEP_GROWTH) extraGrandChildDepth
+                              plus (times 2 Y_SEP_GROWTH) extraGreatGrandChildDepth
 
 
                yAdjust = times Y_ADJUST_INCREMENT (div nggc 2)
@@ -673,33 +738,36 @@ setGraphPositions
                   isLeftmost = true
                   isOdd = true
                   for greatGrandChild in greatGrandChildren
-                     pos = position greatGrandChild user
+                     if not contains visited greatGrandChild
+                        visited += greatGrandChild  
+                  
+                        pos = position greatGrandChild user
 
-                     offset = times
-                                 min (len greatGrandChild.title) MAX_TITLE_CHARS_DISPLAYED
-                                 minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
+                        offset = times
+                                    min (len greatGrandChild.title) MAX_TITLE_CHARS_DISPLAYED
+                                    minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
 
-                     if isLeftmost
-                        xi = plus xi (div offset 2)             
-                        isLeftmost = false
-                     else
-                        xi = plus xi 
-                                  div (plus offset prevOffset) 2
-                     prevOffset = offset
+                        if isLeftmost
+                           xi = plus xi (div offset 2)             
+                           isLeftmost = false
+                        else
+                           xi = plus xi 
+                                     div (plus offset prevOffset) 2
+                        prevOffset = offset
 
-                     if isOdd  // EGH new
-                        yi = minus yi Y_ADJUST_INCREMENT
-                     
-                     pos.x = xi
-                     pos.y = yi  
+                        if isOdd  // EGH new
+                           yi = minus yi Y_ADJUST_INCREMENT
+                        
+                        pos.x = xi
+                        pos.y = yi  
 
-                     yMaxUsed = yi 
+                        yMaxUsed = yi 
 
-                     if isOdd  // EGH new
-                        yi = plus yi Y_ADJUST_INCREMENT
-                        isOdd = false
-                     else
-                        isOdd = true                       
+                        if isOdd  // EGH new
+                           yi = plus yi Y_ADJUST_INCREMENT
+                           isOdd = false
+                        else
+                           isOdd = true                       
 
       yMaxUsed = plus yMaxUsed 50
 
@@ -784,12 +852,21 @@ rightShift topicRow [] model.Topic user model.User focusTopicx Int
 """
    last = minus (len topicRow) 1
    lastTopic = topicRow[last]
+
    lastPos = position lastTopic user    
    if lt lastPos.x (minus focusTopicx X_MIN)
+      visited = {}model.Topic
       xDelta = minus focusTopicx lastPos.x
+      print "----------rightShift---lastTopic of row:" lastTopic.title      
+      print focusTopicx lastPos.x xDelta
       for topic in topicRow
-         pos = position topic user      
-         pos.x = plus pos.x xDelta 
+         if not contains visited topic
+            visited += topic
+            pos = position topic user      
+            pos.x = plus pos.x xDelta 
+            print topic.title ">" pos.x   
+
+      print "----------------"
 
 
 MAX_DISTRIBUTION_TOTAL_WIDTH = 2000
@@ -807,7 +884,12 @@ distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int
       maxWidthIncrement = MAX_DISTRIBUTION_WIDTH_INCREMENT
 
    last = minus (len topicRow) 1
-   nGaps = last   
+
+   topicSet = {
+                 for t in topicRow
+                    t 
+              }model.Topic
+   nGaps = minus (len topicSet) 1  
    if not nGaps
       =>
    lastTopic = topicRow[last]
@@ -820,7 +902,9 @@ distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int
    usedWidth = plus pos.x (plus extra X_MIN)
 
    freeWidth = minus availableWidth usedWidth
-   if gt freeWidth 0     
+   if gt freeWidth 0   
+      visited = {}model.Topic
+      print "freeWidth" freeWidth  
       totalGapFillAllowed = times maxWidthIncrement nGaps
       fillDelta = minus freeWidth totalGapFillAllowed
       if lt fillDelta 0
@@ -832,9 +916,12 @@ distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int
 
       xDelta = leftMargin
       for topic in topicRow
-         pos = position topic user      
-         pos.x = plus pos.x xDelta
-         xDelta = plus xDelta widthIncrement         
+         if not contains visited topic
+            visited += topic
+            pos = position topic user      
+            pos.x = plus pos.x xDelta
+            print topic.title ">" pos.x           
+            xDelta = plus xDelta widthIncrement         
 
 
 
@@ -847,8 +934,10 @@ ancestorsWidth topic model.Topic > wa Int wp Int wgp Int wggp Int
    n1 = 0
    n2 = 0
    n3 = 0
+   visited = {}model.Topic
    for parentLink in topic.parentLinks
       parent = parentLink.parent
+      visited += parent
       n1 = plus 
               n1
               times 
@@ -856,19 +945,23 @@ ancestorsWidth topic model.Topic > wa Int wp Int wgp Int wggp Int
                  CHAR_WIDTH
       for gpLink in parent.parentLinks
          grandParent = gpLink.parent
-         n2 = plus 
-                 n2
-                 times 
-                    min (len grandParent.title) MAX_TITLE_CHARS_DISPLAYED
-                    minus CHAR_WIDTH GRAND_SQUEEZE
+         if not contains visited grandParent
+            visited += grandParent
+            n2 = plus 
+                    n2
+                    times 
+                       min (len grandParent.title) MAX_TITLE_CHARS_DISPLAYED
+                       minus CHAR_WIDTH GRAND_SQUEEZE
 
          for ggpLink in grandParent.parentLinks
             ggParent = ggpLink.parent
-            n3 = plus 
-                    n3
-                    times 
-                       min (len ggParent.title) MAX_TITLE_CHARS_DISPLAYED
-                       minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
+            if not contains visited ggParent
+               visited += ggParent
+               n3 = plus 
+                       n3
+                       times 
+                          min (len ggParent.title) MAX_TITLE_CHARS_DISPLAYED
+                          minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
    wa = max (max n3 n2) n1
    wp wgp wggp = n1 n2 n3
 
@@ -880,9 +973,9 @@ descendantsWidth
    greatGrandchildrenVertical Bool
 > 
    wd Int 
-   wp Int 
-   wgp Int 
-   wggp Int
+   wc Int 
+   wgc Int 
+   wggc Int
 """
  Return a width based on an estimate of the width needed to display the titles of 
  children, grandchildren, and great grandchildren of the topic.
@@ -890,8 +983,10 @@ descendantsWidth
    n1 = 0
    n2 = 0
    n3 = 0
+   visited = {}model.Topic   
    for childLink in topic.childLinks
       child = childLink.child
+      visited += child
       n1 = plus 
               n1
               times 
@@ -901,31 +996,36 @@ descendantsWidth
          n1 = plus n1 VERTICAL_LAYOUT_CHILD_HORIZONTAL_SEPARATION
       for gpLink in child.childLinks
          grandChild = gpLink.child
-         if grandchildrenVertical
-            n2 = plus
-                    n2
-                    50
-         else
-            n2 = plus 
-                    n2
-                    times 
-                       min (len grandChild.title) MAX_TITLE_CHARS_DISPLAYED
-                       minus CHAR_WIDTH GRAND_SQUEEZE
-            if greatGrandchildrenVertical
-               n2 = plus n2 VERTICAL_LAYOUT_GRANDCHILD_HORIZONTAL_SEPARATION
+         if not contains visited grandChild
+            visited += grandChild
+            if grandchildrenVertical
+               n2 = plus
+                       n2
+                       50
+            else
+               n2 = plus 
+                       n2
+                       times 
+                          min (len grandChild.title) MAX_TITLE_CHARS_DISPLAYED
+                          minus CHAR_WIDTH GRAND_SQUEEZE
+               if greatGrandchildrenVertical
+                  n2 = plus n2 VERTICAL_LAYOUT_GRANDCHILD_HORIZONTAL_SEPARATION
 
          for ggpLink in grandChild.childLinks
             ggChild = ggpLink.child
-            if greatGrandchildrenVertical
-               n3 = plus
-                       n3
-                       25
-            else
-               n3 = plus 
-                       n3
-                       times 
-                          min (len ggChild.title) MAX_TITLE_CHARS_DISPLAYED
-                          minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
+
+            if not contains visited ggChild
+               visited += ggChild            
+               if greatGrandchildrenVertical
+                  n3 = plus
+                          n3
+                          25
+               else
+                  n3 = plus 
+                          n3
+                          times 
+                             min (len ggChild.title) MAX_TITLE_CHARS_DISPLAYED
+                             minus CHAR_WIDTH GREAT_GRAND_SQUEEZE
    if grandchildrenVertical
       n2 = plus n2 400
    if greatGrandchildrenVertical
