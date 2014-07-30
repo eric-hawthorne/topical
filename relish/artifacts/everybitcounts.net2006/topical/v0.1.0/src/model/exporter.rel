@@ -46,7 +46,7 @@ flattenOntology
       linkId = dbid link
 
       if xp.dbidToLinkNum[? linkId]  // Already visited this link
-         break
+         continue
       linkNum = xp.nextLinkNum
       flatLink = FlatLink link linkNum
       xp.parentChilds += flatLink
@@ -60,7 +60,7 @@ flattenOntology
    for link in topic.parentLinks
       linkId = dbid link
       if xp.dbidToLinkNum[? linkId]  // Already visited this link
-         break
+         continue
       linkNum = xp.nextLinkNum         
       flatLink = FlatLink link linkNum
       xp.parentChilds += flatLink      
@@ -75,7 +75,7 @@ flattenOntology
       linkId = dbid link
 
       if xp.dbidToLinkNum[? linkId]  // Already visited this link
-         break
+         continue
       linkNum = xp.nextLinkNum
       flatLink = FlatLink link linkNum
       xp.relateds += flatLink
@@ -89,7 +89,7 @@ flattenOntology
    for link in topic.fromLinks
       linkId = dbid link
       if xp.dbidToLinkNum[? linkId]  // Already visited this link
-         break
+         continue
       linkNum = xp.nextLinkNum         
       flatLink = FlatLink link linkNum
       xp.relateds += flatLink
