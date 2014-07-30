@@ -417,7 +417,11 @@ setGraphPositions
             if isOdd  // EGH new
                yi = plus yi Y_ADJUST_INCREMENT
             pos.x = xi
-            pos.y = yi         
+            pos.y = yi     
+
+
+            xMaxUsed = max xMaxUsed (plus xi offset)
+
             if isOdd  // EGH new
                yi = minus yi Y_ADJUST_INCREMENT
                isOdd = false
@@ -459,7 +463,10 @@ setGraphPositions
                   yi = plus yi Y_ADJUST_INCREMENT
 
                pos.x = xi
-               pos.y = yi         
+               pos.y = yi    
+
+               xMaxUsed = max xMaxUsed (plus xi offset)
+
                if isOdd  // EGH new
                   yi = minus yi Y_ADJUST_INCREMENT
                   isOdd = false
@@ -499,7 +506,10 @@ setGraphPositions
                   if isOdd  // EGH new
                      yi = plus yi Y_ADJUST_INCREMENT
                   pos.x = xi
-                  pos.y = yi      
+                  pos.y = yi    
+
+                  xMaxUsed = max xMaxUsed (plus xi offset)     
+                                 
                   if isOdd  // EGH new
                      yi = minus yi Y_ADJUST_INCREMENT
                      isOdd = false
@@ -556,7 +566,9 @@ setGraphPositions
             if isOdd  // EGH new
                yi = minus yi Y_ADJUST_INCREMENT
             pos.x = xi
-            pos.y = yi    
+            pos.y = yi   
+
+            xMaxUsed = max xMaxUsed (plus xi offset)             
 
             yMaxUsed = max yMaxUsed yi  
 
@@ -595,6 +607,8 @@ setGraphPositions
                      pos.x = xigc
                      pos.y = yigc
 
+                     xMaxUsed = max xMaxUsed (plus xigc offset)                     
+
                      yMaxUsed = max yMaxUsed yigc                  
 
                      yigc = plus yigc (times 3 Y_ADJUST_INCREMENT)  
@@ -613,7 +627,7 @@ setGraphPositions
                            pos.x = xiggc
                            pos.y = yiggc
 
-
+                           xMaxUsed = max xMaxUsed (plus xiggc offset)
                            yMaxUsed = max yMaxUsed yiggc                   
 
                            yiggc = plus yiggc (times 3 Y_ADJUST_INCREMENT)  
@@ -676,6 +690,7 @@ setGraphPositions
                   pos.x = xi
                   pos.y = yi      
 
+                  xMaxUsed = max xMaxUsed xi   
                   yMaxUsed = max yMaxUsed yi   
 
                   if isOdd  // EGH new
@@ -710,6 +725,7 @@ setGraphPositions
                            pos.x = xiggc
                            pos.y = yiggc
 
+                           xMaxUsed = max xMaxUsed xiggc  
                            yMaxUsed = max yMaxUsed yiggc                  
 
                            yiggc = plus yiggc (times 3 Y_ADJUST_INCREMENT)  
@@ -740,7 +756,7 @@ setGraphPositions
                   for greatGrandChild in greatGrandChildren
                      if not contains visited greatGrandChild
                         visited += greatGrandChild  
-                  
+
                         pos = position greatGrandChild user
 
                         offset = times
@@ -761,7 +777,8 @@ setGraphPositions
                         pos.x = xi
                         pos.y = yi  
 
-                        yMaxUsed = yi 
+                        xMaxUsed = max xMaxUsed xi 
+                        yMaxUsed = max yMaxUsed yi 
 
                         if isOdd  // EGH new
                            yi = plus yi Y_ADJUST_INCREMENT
@@ -769,10 +786,15 @@ setGraphPositions
                         else
                            isOdd = true                       
 
+      xMaxUsed = plus xMaxUsed 50
       yMaxUsed = plus yMaxUsed 50
 
+      if gt xMaxUsed width
+         width = xMaxUsed 
       if gt yMaxUsed height
          height = yMaxUsed 
+
+
 
       if nggp
          distribute greatGrandParents user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
