@@ -817,13 +817,13 @@ setGraphPositions
                         else
                            isOdd = true                       
 
-      xMaxUsed = plus xMaxUsed 50
-      yMaxUsed = plus yMaxUsed 50
+   xMaxUsed = plus xMaxUsed 50
+   yMaxUsed = plus yMaxUsed 50
 
-      if gt xMaxUsed width
-         width = xMaxUsed 
-      if gt yMaxUsed height
-         height = yMaxUsed 
+   if gt xMaxUsed width
+      width = xMaxUsed 
+   if gt yMaxUsed height
+      height = yMaxUsed 
 
 
 
