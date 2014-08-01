@@ -88,6 +88,9 @@ setGraphPositions
    ngc = 0
    nggc = 0
 
+   grandChildrenMustBeHorizontal = false
+   greatGrandChildrenMustBeHorizontal = false 
+
    if nc
       numLayers = plus numLayers 1
 
@@ -115,30 +118,29 @@ setGraphPositions
          if nggc
             numLayers = plus numLayers 1
 
-   grandChildrenMustBeHorizontal = false
-   nMultiParentGrandChildren = 0
-   for gc in grandChildrenSet
-      if gt (len gc.parentLinks) 1
-         nMultiParentGrandChildren = plus nMultiParentGrandChildren 1 
+         nMultiParentGrandChildren = 0
+         for gc in grandChildrenSet
+            if gt (len gc.parentLinks) 1
+               nMultiParentGrandChildren = plus nMultiParentGrandChildren 1 
 
-   if gt nMultiParentGrandChildren 10
-      grandChildrenMustBeHorizontal = true    
-   elif and gt nMultiParentGrandChildren 3 
-            gt (times nMultiParentGrandChildren 3) ngc
-      grandChildrenMustBeHorizontal = true    
+         if gt nMultiParentGrandChildren 10
+            grandChildrenMustBeHorizontal = true    
+         elif and gt nMultiParentGrandChildren 3 
+                  gt (times nMultiParentGrandChildren 3) ngc
+            grandChildrenMustBeHorizontal = true    
 
-   greatGrandChildrenMustBeHorizontal = false   
-   nMultiParentGreatGrandChildren = 0
-   for ggc in greatGrandChildrenSet
-      if gt (len ggc.parentLinks) 1
-         nMultiParentGreatGrandChildren = plus nMultiParentGreatGrandChildren 1 
-   if gt nMultiParentGreatGrandChildren 10
-      grandChildrenMustBeHorizontal = true    
-      greatGrandChildrenMustBeHorizontal = true
-   elif and gt nMultiParentGreatGrandChildren 3 
-            gt (times nMultiParentGreatGrandChildren 3) nggc
-      grandChildrenMustBeHorizontal = true    
-      greatGrandChildrenMustBeHorizontal = true
+        
+         nMultiParentGreatGrandChildren = 0
+         for ggc in greatGrandChildrenSet
+            if gt (len ggc.parentLinks) 1
+               nMultiParentGreatGrandChildren = plus nMultiParentGreatGrandChildren 1 
+         if gt nMultiParentGreatGrandChildren 10
+            grandChildrenMustBeHorizontal = true    
+            greatGrandChildrenMustBeHorizontal = true
+         elif and gt nMultiParentGreatGrandChildren 3 
+                  gt (times nMultiParentGreatGrandChildren 3) nggc
+            grandChildrenMustBeHorizontal = true    
+            greatGrandChildrenMustBeHorizontal = true
 
    // Prepare to lay out children, grandchildren, and great grandchildren
    // Compute layout hints depending on number of each of these.
