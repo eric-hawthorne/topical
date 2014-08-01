@@ -825,7 +825,7 @@ setGraphPositions
    if gt yMaxUsed height
       height = yMaxUsed 
 
-
+   print "xMaxUsed" xMaxUsed "width final" width
 
    if nggp
       distribute greatGrandParents user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width true
