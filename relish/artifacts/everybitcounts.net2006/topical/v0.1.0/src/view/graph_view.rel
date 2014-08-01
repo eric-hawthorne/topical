@@ -115,18 +115,43 @@ setGraphPositions
          if nggc
             numLayers = plus numLayers 1
 
+   grandChildrenMustBeHorizontal = false
+   nMultiParentGrandChildren = 0
+   for gc in grandChildrenSet
+      if gt (len gc.parentLinks) 1
+         nMultiParentGrandChildren = plus nMultiParentGrandChildren 1 
 
+   if gt nMultiParentGrandChildren 10
+      grandChildrenMustBeHorizontal = true    
+   elif and gt nMultiParentGrandChildren 3 
+            gt (times nMultiParentGrandChildren 3) ngc
+      grandChildrenMustBeHorizontal = true    
 
-
+   greatGrandChildrenMustBeHorizontal = false   
+   nMultiParentGreatGrandChildren = 0
+   for ggc in greatGrandChildrenSet
+      if gt (len ggc.parentLinks) 1
+         nMultiParentGreatGrandChildren = plus nMultiParentGreatGrandChildren 1 
+   if gt nMultiParentGreatGrandChildren 10
+      grandChildrenMustBeHorizontal = true    
+      greatGrandChildrenMustBeHorizontal = true
+   elif and gt nMultiParentGreatGrandChildren 3 
+            gt (times nMultiParentGreatGrandChildren 3) nggc
+      grandChildrenMustBeHorizontal = true    
+      greatGrandChildrenMustBeHorizontal = true
 
    // Prepare to lay out children, grandchildren, and great grandchildren
    // Compute layout hints depending on number of each of these.
 
-   verticalGrandChildren = and (gt ngc 10) (gt ngc nc)
+   verticalGrandChildren = and not grandChildrenMustBeHorizontal
+                               gt ngc 10 
+                               gt ngc nc
    horizontalGrandChildren = not verticalGrandChildren
 
    verticalGreatGrandChildren = or verticalGrandChildren 
-                                   and (gt nggc 15) (gt nggc ngc)
+                                   and not greatGrandChildrenMustBeHorizontal
+                                       gt nggc 15 
+                                       gt nggc ngc
    horizontalGreatGrandChildren = not verticalGreatGrandChildren
    print ""
    print "nggp" nggp "ngp" ngp "np" np 
@@ -141,34 +166,38 @@ setGraphPositions
 
    extraParentDepth = 0
    if gt np 30
-      extraParentDepth = 600
+      extraParentDepth = 500
    elif gt np 20
-      extraParentDepth = 400
+      extraParentDepth = 350
    elif gt np 10
       extraParentDepth = 200  
 
    extraChildDepth = 0
    if gt nc 30
-      extraChildDepth = 600
+      extraChildDepth = 350
    elif gt nc 20
-      extraChildDepth = 400
+      extraChildDepth = 300
    elif gt nc 10
       extraChildDepth = 200                                
 
    extraGrandChildDepth = 0
    if gt ngc 30
-      extraGrandChildDepth = 600
+      extraGrandChildDepth = 350
    elif gt ngc 20
-      extraGrandChildDepth = 400
-   elif gt ngc 10
+      extraGrandChildDepth = 300
+   elif or gt ngc 10
+           and gt ngc 5
+               grandChildrenMustBeHorizontal
       extraGrandChildDepth = 200  
 
    extraGreatGrandChildDepth = 0
    if gt nggc 30
-      extraGreatGrandChildDepth = 600
+      extraGreatGrandChildDepth = 350
    elif gt nggc 20
-      extraGreatGrandChildDepth = 400
-   elif gt nggc 10
+      extraGreatGrandChildDepth = 300
+   elif or gt nggc 10
+           and gt nggc 5
+               greatGrandChildrenMustBeHorizontal
       extraGreatGrandChildDepth = 200        
 
    if extraChildDepth
@@ -648,7 +677,7 @@ setGraphPositions
                    plus MIN_Y_SEPARATION 
                         plus Y_SEP_GROWTH extraGrandChildDepth
 
-         yAdjust = times Y_ADJUST_INCREMENT (div ngc 4)
+         yAdjust = times Y_ADJUST_INCREMENT (div ngc 8)
          yi = plus yi yAdjust
 
          if ngc
@@ -746,7 +775,7 @@ setGraphPositions
                               plus (times 2 Y_SEP_GROWTH) extraGreatGrandChildDepth
 
 
-               yAdjust = times Y_ADJUST_INCREMENT (div nggc 2)
+               yAdjust = times Y_ADJUST_INCREMENT (div nggc 6)
                yi = plus yi yAdjust
 
                if nggc
