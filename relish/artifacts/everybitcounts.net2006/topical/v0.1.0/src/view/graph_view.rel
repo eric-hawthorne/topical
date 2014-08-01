@@ -828,10 +828,10 @@ setGraphPositions
 
 
    if nggp
-      distribute greatGrandParents user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
+      distribute greatGrandParents user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width true
       rightShift greatGrandParents user focusPosition.x      
    if ngp
-      distribute grandParents user (minus CHAR_WIDTH GRAND_SQUEEZE) width (gt nggp 0)
+      distribute grandParents user (minus CHAR_WIDTH GRAND_SQUEEZE) width true
       rightShift grandParents user focusPosition.x      
    if np
       if gt wgp wp
