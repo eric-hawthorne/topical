@@ -827,43 +827,43 @@ setGraphPositions
 
 
 
-      if nggp
-         distribute greatGrandParents user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
-         rightShift greatGrandParents user focusPosition.x      
-      if ngp
-         distribute grandParents user (minus CHAR_WIDTH GRAND_SQUEEZE) width (gt nggp 0)
-         rightShift grandParents user focusPosition.x      
-      if np
-         if gt wgp wp
-            distribute parents 
+   if nggp
+      distribute greatGrandParents user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
+      rightShift greatGrandParents user focusPosition.x      
+   if ngp
+      distribute grandParents user (minus CHAR_WIDTH GRAND_SQUEEZE) width (gt nggp 0)
+      rightShift grandParents user focusPosition.x      
+   if np
+      if gt wgp wp
+         distribute parents 
+                    user 
+                    CHAR_WIDTH 
+                    minus width (times 2 X_MIN) 
+                    gt ngp 0   
+      else 
+         distribute parents user CHAR_WIDTH width (gt ngp 0)   
+      rightShift parents user focusPosition.x      
+
+   if horizontalGrandChildren
+      if nggc
+         if horizontalGreatGrandChildren
+            distribute greatGrandChildren user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
+            rightShift greatGrandChildren user focusPosition.x       
+      if ngc
+         if horizontalGreatGrandChildren
+            distribute grandChildren user (minus CHAR_WIDTH GRAND_SQUEEZE) width (gt nggc 0)
+            rightShift grandChildren user focusPosition.x       
+      
+      if nc
+         if gt wgc wc
+            distribute children
                        user 
                        CHAR_WIDTH 
                        minus width (times 2 X_MIN) 
-                       gt ngp 0   
-         else 
-            distribute parents user CHAR_WIDTH width (gt ngp 0)   
-         rightShift parents user focusPosition.x      
-
-      if horizontalGrandChildren
-         if nggc
-            if horizontalGreatGrandChildren
-               distribute greatGrandChildren user (minus CHAR_WIDTH GREAT_GRAND_SQUEEZE) width false
-               rightShift greatGrandChildren user focusPosition.x       
-         if ngc
-            if horizontalGreatGrandChildren
-               distribute grandChildren user (minus CHAR_WIDTH GRAND_SQUEEZE) width (gt nggc 0)
-               rightShift grandChildren user focusPosition.x       
-         
-         if nc
-            if gt wgc wc
-               distribute children
-                          user 
-                          CHAR_WIDTH 
-                          minus width (times 2 X_MIN) 
-                          gt ngc 0
-            else
-               distribute children user CHAR_WIDTH width (gt ngc 0)
-            rightShift children user focusPosition.x
+                       gt ngc 0
+         else
+            distribute children user CHAR_WIDTH width (gt ngc 0)
+         rightShift children user focusPosition.x
 
 
 
