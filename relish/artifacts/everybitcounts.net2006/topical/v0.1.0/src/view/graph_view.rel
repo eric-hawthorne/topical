@@ -123,10 +123,12 @@ setGraphPositions
             if gt (len gc.parentLinks) 1
                nMultiParentGrandChildren = plus nMultiParentGrandChildren 1 
 
-         if gt nMultiParentGrandChildren 10
+         if gt nMultiParentGrandChildren 20
+            print "gch clause 1"         
             grandChildrenMustBeHorizontal = true    
          elif and gt nMultiParentGrandChildren 3 
                   gt (times nMultiParentGrandChildren 3) ngc
+            print "gch clause 2"      
             grandChildrenMustBeHorizontal = true    
 
         
@@ -134,11 +136,10 @@ setGraphPositions
          for ggc in greatGrandChildrenSet
             if gt (len ggc.parentLinks) 1
                nMultiParentGreatGrandChildren = plus nMultiParentGreatGrandChildren 1 
-         if gt nMultiParentGreatGrandChildren 10
-            grandChildrenMustBeHorizontal = true    
-            greatGrandChildrenMustBeHorizontal = true
-         elif and gt nMultiParentGreatGrandChildren 3 
-                  gt (times nMultiParentGreatGrandChildren 3) nggc
+         if and gt nMultiParentGreatGrandChildren 3 
+                gt (times nMultiParentGreatGrandChildren 3) nggc
+
+            print "ggch clause 2" nMultiParentGreatGrandChildren nggc                   
             grandChildrenMustBeHorizontal = true    
             greatGrandChildrenMustBeHorizontal = true
 
@@ -938,22 +939,39 @@ distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int
 
    last = minus (len topicRow) 1
 
+   //   print "len topicRow" (len topicRow)
+   //   for i topic in topicRow 
+   //      p = position topic user
+   //      print i p.x 
+
    topicSet = {
                  for t in topicRow
                     t 
               }model.Topic
+
+   rightPosx = 0
+   rightTopic = nil
+   for topic in topicSet
+      pos = position topic user
+      if gt pos.x rightPosx
+         rightPosx = pos.x
+         rightTopic = topic
+
    nGaps = minus (len topicSet) 1  
    if not nGaps
       =>
-   lastTopic = topicRow[last]
+
    extra = div
               times 
-                 min (len lastTopic.title) MAX_TITLE_CHARS_DISPLAYED
+                 min (len rightTopic.title) MAX_TITLE_CHARS_DISPLAYED
                  charWidth
               2
-   pos = position lastTopic user           
-   usedWidth = plus pos.x (plus extra X_MIN)
+          
+   usedWidth = plus rightPosx (plus extra X_MIN)
 
+
+   print "canvasWidth" canvasWidth "availableWidth" availableWidth 
+   print "pos.x" pos.x "usedWidth" usedWidth
    freeWidth = minus availableWidth usedWidth
    if gt freeWidth 0   
       visited = {}model.Topic
@@ -971,9 +989,10 @@ distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int
       for topic in topicRow
          if not contains visited topic
             visited += topic
-            pos = position topic user      
+            pos = position topic user   
+            oldPosx = pos.x   
             pos.x = plus pos.x xDelta
-            print topic.title ">" pos.x           
+            print topic.title oldPosx ">" pos.x           
             xDelta = plus xDelta widthIncrement         
 
 
