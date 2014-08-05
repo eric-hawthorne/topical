@@ -26,6 +26,8 @@ Y_MIN = 50
 Y_ADJUST_INCREMENT = 12
 VERTICAL_LAYOUT_CHILD_HORIZONTAL_SEPARATION = 250
 VERTICAL_LAYOUT_GRANDCHILD_HORIZONTAL_SEPARATION = 200
+MAX_DISTRIBUTION_TOTAL_WIDTH = 3000
+MAX_DISTRIBUTION_WIDTH_INCREMENT = 400
 
 
 setGraphPositions 
@@ -923,8 +925,7 @@ rightShift topicRow [] model.Topic user model.User focusTopicx Int
       print "----------------"
 
 
-MAX_DISTRIBUTION_TOTAL_WIDTH = 2000
-MAX_DISTRIBUTION_WIDTH_INCREMENT = 400
+
 
 
 distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int hasDescendents Bool
