@@ -573,7 +573,8 @@ setGraphPositions
 
       for child in children
          if not contains visited child
-            if and (not contains grandChildrenSet child) (not contains greatGrandChildrenSet child) 
+            if and not contains grandChildrenSet child
+                   not contains greatGrandChildrenSet child 
                visited += child
 
                pos = position child user
