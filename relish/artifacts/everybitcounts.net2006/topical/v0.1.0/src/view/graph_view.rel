@@ -939,7 +939,13 @@ distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int
    distribute topicRow user charWidth canvasWidth hasDescendents excluded
 
 
-distribute topicRow [] model.Topic user model.User charWidth Int canvasWidth Int hasDescendents Bool excluded {} model.Topic
+distribute 
+   topicRow [] model.Topic 
+   user model.User 
+   charWidth Int 
+   canvasWidth Int 
+   hasDescendents Bool 
+   excluded {} model.Topic
 """
  Distribute extra horizontal space along a row of topics in the graph.
 """
