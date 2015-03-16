@@ -117,10 +117,10 @@ backup backupsDir String
  rather than a timestamp.
 """
    timestamp = format (now "Local") "20060102"
-   backupDir = fill "%s/%s/" backupsDir timestamp
+   backupDir = fill "%s/%s" backupsDir timestamp
    users = []User "1 = 1"  // All users
    for user in users
-      userBackupDir = cat backupDir user.name
+      userBackupDir = cat backupDir "/" user.name
       mkdirAll userBackupDir
       for ontology in user.ontologies
          jsonEncoded err = exportToJson ontology
@@ -134,9 +134,9 @@ Error: %s
                        user.name
                        err
          else
-            ontologyFilePath = userBackupDir "/" ontology.urlPathComponent ".json"
+            ontologyFilePath = cat backupDir ontology.urlPathComponent ".json"
             // write the json to a file
-            file err = File ontologyFilePath "w"
+            file err = files.File ontologyFilePath "w"
             if err
                print fill """
 Could not backup ontology '%s' 
