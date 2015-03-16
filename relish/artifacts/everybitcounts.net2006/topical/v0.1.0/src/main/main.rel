@@ -9,8 +9,26 @@ package  main
 """
 
 
+import 
+   model
+
+
+BACKUPS_DIR = "/opt/topical/relish/data/everybitcounts.net2006/topical"
+
+
 main
 """
- Just say hi.
+ Announce start, then start a daily backups loop.
 """
    print "Starting Topical application."
+
+   while true
+      err = begin
+      if err 
+         print err
+      else
+         backup BACKUPS_DIR
+         err = commit
+         if err
+            print err 
+      sleep hours 24

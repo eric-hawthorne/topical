@@ -11,6 +11,9 @@ package  model
 
 import
    json
+   datetime
+   strings
+   files
 
 
 exportToJson ontology Ontology > jsonEncoded String err String
@@ -99,3 +102,63 @@ flattenOntology
       topic1Id = dbid link.from
       flatLink.topic1 = xp.dbidToTopicNum[! topic1Id]  // topic 1 is from      
       flatLink.topic2 = topicNum  // topic2 is to  
+
+
+
+
+
+backup backupsDir String 
+"""
+ Create, under backupsDir, a datestamped directory which contains a subdirectory for each user,
+ where the subdirectory contains an export file for each of the user's ontologies.
+ e.g. /opt/backups/20150316/eric/Matter_Patterns.json
+
+ Assumes it will be called no more than once a day, so uses a date stamp to name the backup
+ rather than a timestamp.
+"""
+   timestamp = format (now "Local") "20060102"
+   backupDir = fill "%s/%s/" backupsDir timestamp
+   users = []User "1 = 1"  // All users
+   for user in users
+      userBackupDir = cat backupDir user.name
+      mkdirAll userBackupDir
+      for ontology in user.ontologies
+         json err = exportToJson ontology
+         if err
+            print fill """
+Could not backup ontology '%s' 
+for user %s.
+Error: %s
+"""
+                       ontology.name
+                       user.name
+                       err
+         else
+            ontologyFilePath = userBackupDir "/" ontology.urlPathComponent ".json"
+            // write the json to a file
+            file err = File ontologtFilePath "w"
+            if err
+               print fill """
+Could not backup ontology '%s' 
+for user %s.
+Error: %s
+"""
+                          ontology.name
+                          user.name
+                          err  
+
+            n err = write file json
+
+            if err
+               print fill """
+Could not backup ontology '%s' 
+for user %s.
+Error: %s
+"""
+                          ontology.name
+                          user.name
+                          err            
+            close file
+
+
+
