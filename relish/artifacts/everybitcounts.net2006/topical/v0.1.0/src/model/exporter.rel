@@ -123,7 +123,7 @@ backup backupsDir String
       userBackupDir = cat backupDir user.name
       mkdirAll userBackupDir
       for ontology in user.ontologies
-         json err = exportToJson ontology
+         jsonEncoded err = exportToJson ontology
          if err
             print fill """
 Could not backup ontology '%s' 
@@ -136,7 +136,7 @@ Error: %s
          else
             ontologyFilePath = userBackupDir "/" ontology.urlPathComponent ".json"
             // write the json to a file
-            file err = File ontologtFilePath "w"
+            file err = File ontologyFilePath "w"
             if err
                print fill """
 Could not backup ontology '%s' 
@@ -147,7 +147,7 @@ Error: %s
                           user.name
                           err  
 
-            n err = write file json
+            n err = write file jsonEncoded
 
             if err
                print fill """
