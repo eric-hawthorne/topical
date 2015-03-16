@@ -99,6 +99,9 @@ initTopic t Topic ft FlatTopic > Topic
    t.fillColor = ft.fillColor
    t.titleColor = ft.titleColor
    t.level = ft.level
+
+   t.edited = now "UTC"  // TODO - this is a temporary measure, for schema migration. flat should have time.
+   
    => t   
 
 

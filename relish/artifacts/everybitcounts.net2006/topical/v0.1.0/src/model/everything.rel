@@ -47,7 +47,29 @@ Topic
    level Int  // 0 = root, 1 = child of root, 2 or more = more indirect descendent of root than that 
    activeParent ?Topic  // Which parent should I show siblings of ?
    ontology Ontology
-   
+   edited Time
+   recent 0 N [>time] TopicSnapshot
+   daily 0 N [>time] TopicSnapshot
+
+
+TopicSnapshot
+"""
+ A historical snapshot of the title and content of a topic.
+"""
+   time Time
+   title String
+   content String
+
+
+initTopicSnapshot snap TopicSnapshot topic Topic > TopicSnapshot
+"""
+ Snapshot constructor
+"""
+   snap.time = topic.edited
+   snap.title = topic.title
+   snap.content = topic.content
+   => snap   
+
 
 abbrevTitle topic Topic maxLen Int > String
 """

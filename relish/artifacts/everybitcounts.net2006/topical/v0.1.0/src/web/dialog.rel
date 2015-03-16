@@ -13,6 +13,7 @@ import
    view
    strings
    http_srv   
+   datetime
 
 
 index
@@ -297,6 +298,7 @@ createAction request http_srv.Request ontologyUrlPath String rootTopicTitle Stri
    user = summon username
 
    topic = model.Topic
+   topic.edited = now "UTC"
    topic.title = rootTopicTitle
    topic.urlPathComponent = urlSanitize rootTopicTitle
    topic.content = cat "<h1>" rootTopicTitle "</h1>"
@@ -513,6 +515,7 @@ linkNewTopicAction request http_srv.Request linkType String linkSubtype String t
          cat "/?next=" topic 
 
    newTopic = model.Topic
+   newTopic.edited = now "UTC"   
    newTopic.title = title
    newTopic.urlPathComponent = urlSanitize title
    newTopic.content = cat "<h1>" title "</h1>"
@@ -755,7 +758,14 @@ saveTopicAction request http_srv.Request topic String content String > String St
                  cat "/" visit.user.name
    editedTopic = summon topic
    content = stripNbsps content
-   editedTopic.content = content
+
+   if neq editedTopic.content content
+      snapshot editedTopic
+
+      editedTopic.edited = now "UTC"
+
+      editedTopic.content = content
+
    => extendSession "HTTP CODE" 200
 
 
@@ -803,11 +813,18 @@ saveAndRenameTopicAction request http_srv.Request topic String content String ne
 
    content = stripNbsps content
    newTitle = stripNbsps newTitle
-   editedTopic.content = content
-   editedTopic.title = newTitle
-   editedTopic.urlPathComponent = urlSanitize newTitle
-   editedTopicUrlPath = urlPath editedTopic   
-   rename topic editedTopicUrlPath
+
+   if or (neq editedTopic.content content) (neq editedTopic.title newTitle)
+      snapshot editedTopic
+
+      editedTopic.edited = now "UTC"
+
+      editedTopic.content = content
+      editedTopic.title = newTitle
+      editedTopic.urlPathComponent = urlSanitize newTitle
+      editedTopicUrlPath = urlPath editedTopic   
+      rename topic editedTopicUrlPath
+
    => extendSession
       "REDIRECT"
       editedTopicUrlPath
