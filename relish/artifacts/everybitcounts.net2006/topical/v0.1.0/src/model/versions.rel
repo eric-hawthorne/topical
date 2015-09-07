@@ -1,0 +1,86 @@
+origin   everybitcounts.net2006
+artifact topical
+package  model
+
+"""
+ versions.rel
+
+ Methods to maintain a history of versions of topic title and content.
+ Does not currently version links.
+"""
+
+
+import
+   datetime
+
+
+MAX_RECENT_VERSIONS = 50  // Number of versions to keep in list of every recent change.
+
+
+snapshot topic Topic
+"""
+ Append to the topic's history list the current title and content.
+ Preparatory to accepting a new update of the content and/or title.
+"""
+   snap = TopicSnapshot topic
+   topic.recent += snap
+   if gt (len topic.recent) MAX_RECENT_VERSIONS
+      oldestRecentSnapshot = topic.recent[minus (len topic.recent) 1]
+      topic.recent -= oldestRecentSnapshot
+      delete oldestRecentSnapshot
+
+   // Prepare to also add the snapshot to a once-daily history list.
+   // See if we need to remove a previous snapshot from that list
+   // whose timestamp is earlier today.
+   prunePreviousDaily = false
+   if topic.daily
+      lastDailySnaphot = topic.daily[0]
+      y m d = date lastDailySnaphot.time 
+      y2 m2 d2 = date snap.time
+      if and (eq y y2) (eq m m2) (eq d d2)
+         prunePreviousDaily = true
+
+   // Add the current snapshot to the daily snapshots list.
+   topic.daily += snap
+   if prunePreviousDaily
+      topic.daily -= lastDailySnapshot   
+
+
+history topic Topic > [] TopicSnapshot
+"""
+ Return the entire saved history of the topic, starting with
+ every recent change then after MAX_RECENT_VERSIONS of those,
+ continuing with daily (whenever updated) snapshots.
+"""
+   versions = []TopicSnapshot
+   for recentSnap in topic.recent
+      versions += recentSnap
+   oldEnoughDaily = false
+   for snap in topic.daily
+      if not oldEnoughDaily
+         if after recentSnap.time snap.time
+            oldEnoughDaily = true
+         else
+            continue
+      versions += snap  
+
+   => versions
+
+
+revert topic Topic version TopicSnapshot > retitled Bool
+"""
+ Revert the topic's title and content to that in the version snapshot.
+ Returns true if the title changed, false otherwise.
+"""   
+   snapshot topic  // First, save the current version.
+   oldTitle = topic.title
+   topic.title = version.title
+   topic.content = version.content
+   topic.edited = now "UTC"
+   if neq oldTitle topic.title
+      topic.urlPathComponent = urlSanitize topic.title
+      editedTopicUrlPath = urlPath topic   
+      rename topic editedTopicUrlPath
+      retitled = true
+
+
