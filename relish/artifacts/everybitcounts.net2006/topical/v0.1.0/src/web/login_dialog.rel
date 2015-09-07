@@ -209,6 +209,28 @@ setMasterPassword > String String
       "Master"
 
 
+dmpAction > String String
+"""
+ Deletes the master password.
+"""
+   g = summon "GlobalPasswords"
+   g.masterPwHash = ""
+   => "HTML"
+      "<html><center><h1>Done</h1></center></html>"
+
+
+rnmAction old String new String > String String
+"""
+ Renames an ontology.
+"""
+   err = rename old new 
+   if err
+      => "HTML"
+         cat "<html><center><h2>" err "</h2></center></html>"
+   => "HTML"
+      "<html><center><h1>Done</h1></center></html>"
+
+
 setMasterPasswordAction masterPw String newPw1 String newPw2 String > String String
 """
  Change the master password.
