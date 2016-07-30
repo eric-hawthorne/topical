@@ -14,7 +14,10 @@ import
    datetime
 
 
-BACKUPS_DIR = "/opt/topical/relish/data/everybitcounts.net2006/topical"
+// BACKUPS_DIR = "/opt/topical/relish/data/everybitcounts.net2006/topical"
+
+
+BACKUPS_DIR = "/opt/devel/topical/relish/data/everybitcounts.net2006/topical"
 
 
 main

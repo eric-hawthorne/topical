@@ -82,7 +82,7 @@ importOntology > String String
       "importOntology.html"
 
 
-importOntologyAction request http_srv.Request > String String
+importOntologyAction request http_srv.Request > String String Any
 """
  Processes an upload of a JSON-formatted exported ontology, and creation
  of the ontology as a persistent object network.
@@ -117,3 +117,4 @@ importOntologyAction request http_srv.Request > String String
 Created ontology !
 </html>
 """
+      nil

@@ -50,15 +50,28 @@ unflattenOntology imp JsonImporter > ontology Ontology err String
 
    dub ontology fo.urlPathComponent
 
-   for flatTopic in fo.topics
-      topic = Topic flatTopic
-      topic.ontology = ontology
+   if fo.recentVersions
+      for flatTopic recentSnapshotsList in fo.topics fo.recentVersions
+         topic = Topic flatTopic
+         topic.ontology = ontology
 
-      topicUrlPath = urlPath topic
+         topicUrlPath = urlPath topic
 
-      dub topic topicUrlPath
+         topic.recent = recentSnapshotsList
 
-      imp.topicNumToTopic[flatTopic.num] = topic
+         dub topic topicUrlPath
+
+         imp.topicNumToTopic[flatTopic.num] = topic
+   else
+      for flatTopic in fo.topics
+         topic = Topic flatTopic
+         topic.ontology = ontology
+
+         topicUrlPath = urlPath topic
+
+         dub topic topicUrlPath
+
+         imp.topicNumToTopic[flatTopic.num] = topic
 
    for parentChild in fo.parentChilds
       p = imp.topicNumToTopic[! parentChild.topic1]
@@ -79,7 +92,6 @@ unflattenOntology imp JsonImporter > ontology Ontology err String
       r.label = related.label
       r.color = related.color
       r.labelColor = related.labelColor  
-
 
    ontology.root = imp.topicNumToTopic[! fo.rootTopicNum]
 

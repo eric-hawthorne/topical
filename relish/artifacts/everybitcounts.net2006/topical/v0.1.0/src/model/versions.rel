@@ -34,8 +34,8 @@ snapshot topic Topic
    // whose timestamp is earlier today.
    prunePreviousDaily = false
    if topic.daily
-      lastDailySnaphot = topic.daily[0]
-      y m d = date lastDailySnaphot.time 
+      lastDailySnapshot = topic.daily[0]
+      y m d = date lastDailySnapshot.time 
       y2 m2 d2 = date snap.time
       if and (eq y y2) (eq m m2) (eq d d2)
          prunePreviousDaily = true

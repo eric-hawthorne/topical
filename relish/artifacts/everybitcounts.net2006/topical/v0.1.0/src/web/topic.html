@@ -281,7 +281,7 @@
 			   <input type="button" id="editorButton" value="edit" onclick="ToggleEditor()" title="Make topic editable (click on text to edit)"/>
 		       </td>
 		       <td>
-			 &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; &nbsp;
+			 &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; 
 			   </td>
 			  <td>
 			  <form action="/graph" method="post">
@@ -290,7 +290,17 @@
 			  </form>			
 		      </td>
 		       <td>
-			 &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; &nbsp;
+			 &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; 
+			   </td>
+			  <td>
+			  <form action="/versions" method="post">
+				<input type="hidden" name="topic" value="{{urlPath $topic}}" />		
+		        <input type="hidden" name="v" value="-1" />							
+			    <input type="submit" value=" V " title="View topic version history - revert to version" />	
+			  </form>			
+		      </td>
+		       <td>
+			 &nbsp; &nbsp;  &nbsp; 
 			   </td>		
 	           {{if $topic.level}}		
 		      <td>
@@ -313,7 +323,7 @@
 			   &nbsp; &nbsp;  &nbsp; &nbsp;  &nbsp; &nbsp; 
 			  <form action="/graph" method="post">
 				<input type="hidden" name="topic" value="{{urlPath $topic}}" />				
-			    <input type="submit" value=" * " title="Display topic association graph" />	
+			    <input type="submit" value=" o-O-o " title="Display topic association graph" />	
 			  </form>			
 		      <td>
 			  &nbsp;	

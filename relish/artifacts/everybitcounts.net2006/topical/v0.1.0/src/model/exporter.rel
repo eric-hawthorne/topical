@@ -31,13 +31,16 @@ flattenOntology
    xp JsonExporter
    topic Topic  
 """
- Populates lists of flat (un-networked) versions topics and links.
+ Populates lists of flat (un-networked) proxies of topics and links.
  These can be JSON-serialized later.
  Ensures it does not loop in an object network with reference loops.
+ TODO Also now collects lists of prior versions of each topic's content.
 """
    topicId = dbid topic
    if xp.dbidToTopicNum[? topicId]  // Already visited this topic
       =>
+
+   yesterday = minus (now "UTC") (hours 24)  // Same time yesterday
 
    topicNum = xp.nextTopicNum
    flatTopic = FlatTopic topic topicNum
@@ -103,8 +106,17 @@ flattenOntology
       flatLink.topic1 = xp.dbidToTopicNum[! topic1Id]  // topic 1 is from      
       flatLink.topic2 = topicNum  // topic2 is to  
 
+   // Also prepare for serialization the last 24 hours worth of recent snapshots of the topic
+   recentsList = []TopicSnapshot
+   for recentSnapshot in topic.recent
+      if after recentSnapshot.time yesterday
+         recentsList += recentSnapshot
+      else
+         break
 
-
+   // dailiesList = asList topic.dailies 
+   xp.topicNumToRecents[topicNum] = recentsList
+   // xp.topicNumToDailies[topicNum] = dailiesList
 
 
 backup backupsDir String 

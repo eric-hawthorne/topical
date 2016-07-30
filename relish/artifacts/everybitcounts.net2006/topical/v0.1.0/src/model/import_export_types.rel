@@ -22,6 +22,7 @@ JsonExporter
    parentChilds [] FlatLink
    relateds [] FlatLink
    flatOntology FlatOntology
+   topicNumToRecents {} Int > [] TopicSnapshot
 
 
 initJsonExporter exp JsonExporter ontology Ontology > JsonExporter
@@ -36,6 +37,7 @@ initJsonExporter exp JsonExporter ontology Ontology > JsonExporter
    exp.topics = []FlatTopic
    exp.parentChilds = []FlatLink
    exp.relateds = []FlatLink
+   exp.topicNumToRecents = {}Int > [] TopicSnapshot  
    => exp
 
 
@@ -71,6 +73,7 @@ FlatTopic
    titleColor ?String
    level Int  // 0 = root, 1 = child of root, 2 or more = more indirect descendent of root than that 
    num Int  // Identifying number of the topic in the ontology for use in serialized representation.   
+   edited ?Time
 
 
 initFlatTopic ft FlatTopic t Topic idNum Int > FlatTopic
@@ -85,6 +88,7 @@ initFlatTopic ft FlatTopic t Topic idNum Int > FlatTopic
    ft.titleColor = t.titleColor
    ft.level = t.level
    ft.num = idNum
+   ft.edited = t.edited   
    => ft
 
 
@@ -99,8 +103,10 @@ initTopic t Topic ft FlatTopic > Topic
    t.fillColor = ft.fillColor
    t.titleColor = ft.titleColor
    t.level = ft.level
-
-   t.edited = now "UTC"  // TODO - this is a temporary measure, for schema migration. flat should have time.
+   if ft.edited
+      t.edited = ft.edited
+   else
+      t.edited = now "UTC"  // TODO - this is a temporary measure, for schema migration. flat should have time.
    
    => t   
 
@@ -146,6 +152,7 @@ FlatOntology
    topics [] FlatTopic
    parentChilds [] FlatLink
    relateds [] FlatLink   
+   recentVersions ?[] [] TopicSnapshot
 
 
 initFlatOntology fo FlatOntology xp JsonExporter > FlatOntology
@@ -162,5 +169,7 @@ initFlatOntology fo FlatOntology xp JsonExporter > FlatOntology
    fo.topics = xp.topics
    fo.parentChilds = xp.parentChilds
    fo.relateds = xp.relateds
+   for flatTopic in fo.topics
+      fo.recentVersions += xp.topicNumToRecents[! flatTopic.num]
    => fo
 

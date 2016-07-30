@@ -51,7 +51,7 @@ index
       }String > Any
 
 
-listOntologies request http_srv.Request username String > String String Any
+listOntologies request http_srv.Request username String > String Any Any
 """
  Display a list of the ontologies created by or viewable by the user.
  Also displays a form to create a new ontology.
@@ -1064,4 +1064,111 @@ graph request http_srv.Request topic String > String String Any
          "width"  => width
          "height" => height
       }String > Any
+
+
+
+versions request http_srv.Request topic String v Int > String String Any
+"""
+ Displays a page that shows the content and title of a specific version of the topic.
+ Also shows a list of all stored versions of the topic, and allows the user
+ to select a version to display, or to revert the topic to a version.
+"""
+   tok = session request
+
+   // topic = reEncodeTopicPath topic
+   
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
+   if not exists topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 cat "/" visit.user.name
+   tpc = summon topic
+
+   visit err = ensureHavePermission tok "view" tpc.ontology 
+
+   if err
+      => extendSession
+         "REDIRECT"
+         cat "/?next=" topic 
+ 
+   versionSnapshots = history tpc
+   
+   if eq -1 v  // Show current version of topic
+      title = tpc.title
+      content = tpc.content
+   else
+      versionSnapshot = versionSnapshots[v]
+      title = versionSnapshot.title
+      content = versionSnapshot.content
+
+   => extendSession
+      "versions.html"
+      {
+         "topic"      => tpc
+         "title"      => title
+         "content"    => content
+         "versions"   => versionSnapshots
+         "versionNum" => v
+      }String > Any
+
+
+revertAction request http_srv.Request topic String v Int > String String Any
+"""
+ TODO
+ Reverts the topic to the specified version number, then redirects to the main
+ topic display/edit page, displaying the new version of the topic.
+"""
+   tok = session request
+
+   // topic = reEncodeTopicPath topic
+   
+   visit loggedIn loginPage = ensureLoggedIn tok topic
+   if not visit
+      => "REDIRECT"
+         loginPage
+         nil
+   elif not loggedIn
+      => header setCookie cookie request "SESS"
+         "REDIRECT"
+         loginPage   
+   extendSession = header setCookie "SESS" tok view.ADMIN_SESSION_TIMEOUT "/" ""  
+
+   if not exists topic
+      => errPage extendSession
+                 fill "Error: Topic '%s' not found." topic
+                 "Ok"       
+                 cat "/" visit.user.name
+   tpc = summon topic
+
+   visit err = ensureHavePermission tok "edit" tpc.ontology 
+
+   if err
+      => extendSession
+         "REDIRECT"
+         cat "/?next=" topic 
+ 
+   versionSnapshots = history tpc
+   snapshot = versionSnapshots[v]
+   retitled = revert tpc snapshot
+
+   => extendSession
+      "REDIRECT"
+      urlPath tpc
+
+
+
+
+
+
 
