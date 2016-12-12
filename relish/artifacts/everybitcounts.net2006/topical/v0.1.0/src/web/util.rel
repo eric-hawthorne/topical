@@ -10,6 +10,7 @@ package  web
 
 import
    strings
+   string_utils/hangul_romanization
 
 
 errPage extendSessionHeader String message String buttonLabel String backUrl String 
@@ -120,7 +121,7 @@ urlSanitize s String > String
  Returns a version of the string made safe to be a nice looking URL path component.
  TODO: This is currently lame.
 """
-   => urlPathPartEncode s
+   => urlPathPartEncode romanizeIfHangul s
 
 
 unsanitize s String > String
