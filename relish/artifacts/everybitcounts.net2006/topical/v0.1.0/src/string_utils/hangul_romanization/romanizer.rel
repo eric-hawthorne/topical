@@ -1,0 +1,173 @@
+origin   everybitcounts.net2006
+artifact topical
+package  string_utils/hangul_romanization
+
+"""
+ romanizer.rel
+
+ Methods to convert Hangul (Korean-language) unicode String to the
+ revised-romanization version of the String, which uses only Latin-1 character set.
+
+ Safe to apply to any String. If it is not Hangul, the output string will be
+ same as input string.
+
+ license MIT Copyright 2016 Eric Hawthorne
+ This code is based on https://github.com/Tyriar/hangul-romanization
+ by Daniel Imms (http://www.growingwiththeweb.com)
+
+"""
+
+
+import
+   strings
+
+
+romanizeIfHangul possibleHangul String > romanized String
+"""
+ Check the first character of the string. If it is a Hangul character,
+ convert the string from Hangul to one containing the romanized version of the Hangul.
+ This version of romanization is efficient at processing non-Hangul strings,
+ since it just returns the original string in that case. 
+ But this version only works if the first character is Hangul.
+ This version will not work on a mixed English and Hangul string where the first
+ character is not Hangul. 
+"""
+   codePoint width = runeAt possibleHangul 0
+   isHangul = true
+   if lt codePoint UNICODE_OFFSET
+      isHangul = false
+   if gte codePoint UNICODE_MAX
+      isHangul = false
+   if isHangul
+      romanized = romanizeHangul possibleHangul
+   else
+      romanized = possibleHangul
+
+
+romanizeHangul hangul String > romanized String
+"""
+ Return the revised-romanization version of the Hangul string,
+ or the original string, if it is not Hangul.
+ The Hangul parts of a partially Hangul string will be converted
+ and the other parts left as is.
+
+ This version works on any string some of which is Hangul characters,
+ whether or not the string starts with a Hangul character.
+"""
+
+   chars = split hangul ""  // List of utf8-encoded unicode characters, each as a string.
+
+   nVowels = len VOWELS
+   nFinals = len FINAL_CONSONANTS
+
+   for char in chars
+      codePoint width = runeAt char 0
+      isHangul = true
+      if lt codePoint UNICODE_OFFSET
+         isHangul = false
+      if gte codePoint UNICODE_MAX
+         isHangul = false
+      if isHangul
+
+         unicodeOffset = minus codePoint UNICODE_OFFSET
+         trailerOffset = mod unicodeOffset nFinals
+         unicodeOffset = minus unicodeOffset trailerOffset
+         unicodeOffset = div unicodeOffset nFinals
+         vowelOffset = mod unicodeOffset nVowels
+         unicodeOffset = minus unicodeOffset vowelOffset
+         unicodeOffset = div unicodeOffset nVowels
+         leadOffset = unicodeOffset
+
+         romanized = cat romanized
+                         INITIAL_CONSONANTS[leadOffset]
+                         VOWELS[vowelOffset]
+                         FINAL_CONSONANTS[trailerOffset]
+      else
+         romanized = cat romanized char
+
+
+UNICODE_OFFSET = 44032
+UNICODE_MAX = 55215
+
+
+VOWELS = [
+            "a"    // ㅏ
+            "ae"   // ㅐ
+            "ya"   // ㅑ
+            "yee"  // ㅒ
+            "eo"   // ㅓ
+            "e"    // ㅔ
+            "yeo"  // ㅕ
+            "ye"   // ㅖ
+            "o"    // ㅗ
+            "wa"   // ㅘ
+            "wae"  // ㅙ
+            "oe"   // ㅚ
+            "yo"   // ㅛ
+            "u"    // ㅜ
+            "wo"   // ㅝ
+            "we"   // ㅞ
+            "wi"   // ㅟ
+            "yu"   // ㅠ
+            "eu"   // ㅡ
+            "ui"   // ㅢ
+            "i"    // ㅣ
+         ]
+
+
+INITIAL_CONSONANTS = [
+                        "g"   // ㄱ
+                        "kk"  // ㄲ
+                        "n"   // ㄴ
+                        "d"   // ㄷ
+                        "tt"  // ㄸ
+                        "r"   // ㄹ
+                        "m"   // ㅁ
+                        "b"   // ㅂ
+                        "pp"  // ㅃ
+                        "s"   // ㅅ
+                        "ss"  // ㅆ
+                        ""    // ㅇ
+                        "j"   // ㅈ
+                        "jj"  // ㅉ
+                        "ch"  // ㅊ
+                        "k"   // ㅋ
+                        "t"   // ㅌ
+                        "p"   // ㅍ
+                        "h"   // ㅎ
+                     ]
+
+
+FINAL_CONSONANTS = [
+                      "" 
+                      "k"   // ㄱ
+                      "k"   // ㄲ
+                      "kt"  // ㄳ
+                      "n"   // ㄴ
+                      "nt"  // ㄵ
+                      "nh"  // ㄶ
+                      "t"   // ㄷ
+                      "l"   // ㄹ
+                      "lk"  // ㄺ
+                      "lm"  // ㄻ
+                      "lp"  // ㄼ
+                      "lt"  // ㄽ
+                      "lt"  // ㄾ
+                      "lp"  // ㄿ
+                      "lh"  // ㅀ
+                      "m"   // ㅁ
+                      "p"   // ㅂ
+                      "pt"  // ㅄ
+                      "t"   // ㅅ
+                      "tt"  // ㅆ
+                      "ng"  // ㅇ
+                      "t"   // ㅈ
+                      "t"   // ㅊ
+                      "k"   // ㅋ
+                      "t"   // ㅌ
+                      "p"   // ㅍ
+                      "h"   // ㅎ
+                   ]
+
+
+

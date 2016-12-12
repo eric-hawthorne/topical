@@ -1,0 +1,4 @@
+
+The following commands should be run within a screen on the topicality.net server,
+cd /opt/topical/relish/artifacts  # or somewhere like that
+relish -web 8081 everybitcounts.net2006/topical/ >& relish.log
