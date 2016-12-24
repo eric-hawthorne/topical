@@ -1026,14 +1026,14 @@ graphNewMaybe
    => extendSession
       "graph.html"
       {
-         "topic"      => tpc
-         "user"       => visit.user
-         "width"      => width
-         "height"     => height
-         "fontSize1"  => fontSize1
-         "fontSize2"  => fontSize2
-         "fontSize3"  => fontSize3
-         "fontSize4"  => fontSize4 
+         "topic"     => tpc
+         "user"      => visit.user
+         "width"     => width
+         "height"    => height
+         "fontSize1" => fontSize1
+         "fontSize2" => fontSize2
+         "fontSize3" => fontSize3
+         "fontSize4" => fontSize4 
       }String > Any
 
 
@@ -1089,14 +1089,14 @@ graph request http_srv.Request topic String > String String Any
    => extendSession
       "graph.html"
       {
-         "topic"  => tpc
-         "user"   => visit.user
-         "width"  => width
-         "height" => height
-         "fontSize1"  => fontSize1
-         "fontSize2"  => fontSize2
-         "fontSize3"  => fontSize3
-         "fontSize4"  => fontSize4          
+         "topic"     => tpc
+         "user"      => visit.user
+         "width"     => width
+         "height"    => height
+         "fontSize1" => fontSize1
+         "fontSize2" => fontSize2
+         "fontSize3" => fontSize3
+         "fontSize4" => fontSize4          
       }String > Any
 
 
