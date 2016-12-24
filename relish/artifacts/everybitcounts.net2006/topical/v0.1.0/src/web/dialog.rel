@@ -1010,13 +1010,30 @@ graphNewMaybe
    // compute the positions of the topic for this user
    width height = setGraphPositions tpc visit.user
 
+   bigGraphNodeFonts = true
+
+   if bigGraphNodeFonts
+      fontSize1 = 16
+      fontSize2 = 14
+      fontSize3 = 12
+      fontSize4 = 12
+   else
+      fontSize1 = 12
+      fontSize2 = 10
+      fontSize3 = 9
+      fontSize4 = 8
+
    => extendSession
       "graph.html"
       {
-         "topic"  => tpc
-         "user"   => visit.user
-         "width"  => width
-         "height" => height
+         "topic"      => tpc
+         "user"       => visit.user
+         "width"      => width
+         "height"     => height
+         "fontSize1"  => fontSize1
+         "fontSize2"  => fontSize2
+         "fontSize3"  => fontSize3
+         "fontSize4"  => fontSize4 
       }String > Any
 
 
@@ -1056,6 +1073,19 @@ graph request http_srv.Request topic String > String String Any
    // compute the positions of the topic for this user
    width height = setGraphPositions tpc visit.user
 
+   bigGraphNodeFonts = true
+
+   if bigGraphNodeFonts
+      fontSize1 = 16
+      fontSize2 = 14
+      fontSize3 = 12
+      fontSize4 = 12
+   else
+      fontSize1 = 12
+      fontSize2 = 10
+      fontSize3 = 9
+      fontSize4 = 8
+
    => extendSession
       "graph.html"
       {
@@ -1063,6 +1093,10 @@ graph request http_srv.Request topic String > String String Any
          "user"   => visit.user
          "width"  => width
          "height" => height
+         "fontSize1"  => fontSize1
+         "fontSize2"  => fontSize2
+         "fontSize3"  => fontSize3
+         "fontSize4"  => fontSize4          
       }String > Any
 
 
