@@ -65,7 +65,7 @@
 	        align: 'center'
 	      });
 	
-          titleOffset = titleText.getWidth() / 2;		
+          titleOffset = titleText.getWidth() / 2 - 13;  // - (padding + 5 pixels)		
 
 	      titleArea = new Kinetic.Rect({
 	        x: {{$pos1.x}},
@@ -123,7 +123,7 @@
 		        align: 'center'
 		      });
 
-	          titleOffset = titleText.getWidth() / 2;		
+	          titleOffset = titleText.getWidth() / 2 - 6; // - (padding + 3 pixels)		
 
 		      titleArea = new Kinetic.Rect({
 		        x: {{$pos6.x}},
